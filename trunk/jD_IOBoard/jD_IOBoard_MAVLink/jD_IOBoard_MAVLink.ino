@@ -68,7 +68,7 @@
 #undef PSTR 
 #define PSTR(s) (__extension__({static prog_char __c[] PROGMEM = (s); &__c[0];})) 
 
-//#define MAVLINK10
+#define MAVLINK10
 #define HEARTBEAT
 #define DEBUGSERIAL
 
@@ -123,13 +123,14 @@
 #define FRONT 9
 #define REAR 10
 
+#define LED_LEFT 1
+#define LED_RIGHT 2
 
 #define Circle_Dly 1000
 
 #define ledPin 13     // Heartbeat LED if any
 #define LOOPTIME  50  // Main loop time for heartbeat
-#define BAUD 57600    // Serial speed
-
+//#define BAUD 57600    // Serial speed
 
 #define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
 
@@ -152,17 +153,23 @@ static byte flight_patt[10][16] = {
   { 0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0  },    // 8
   { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  }};   // 9
 
-
 static long preMillis;
 static long curMillis;
 static long delMillis = 1000;
+
+static int curPwm;
+static int prePwm;
+
+static int preAlarm;
+static int curAlarm;
 
 int messageCounter;
 static bool mavlink_active;
 byte hbStatus;
 
 // General states
-byte isArmed = 1;
+byte isArmed = 0;
+byte isActive;
 // byte flMode; moved to .h
 
 byte voltAlarm;  // Alarm holder for internal voltage alarms, trigger 4 vols
@@ -172,7 +179,11 @@ int i2cErrorCount;
 
 byte ledState;
 
-byte debug = 1;
+byte baseState;  // Bit mask for different basic output LEDs like so called Left/Right 
+
+byte debug = 0;
+
+byte ANA;
 
 // Objects and Serial definitions
 FastSerialPort0(Serial);
@@ -217,8 +228,11 @@ void setup()
   }
 
   // Activate Left/Right lights
-  digitalWrite(LEFT, EN);
-  digitalWrite(RIGHT, EN);
+  baseState |= LED_LEFT;
+  baseState |= LED_RIGHT;
+  updateBase();
+//  digitalWrite(LEFT, EN);
+//  digitalWrite(RIGHT, EN);
 
 
 
@@ -227,13 +241,23 @@ void setup()
   Serial.println(freeMem());
 #endif
 
-  // Startup MAVLink timers  
+  // Startup MAVLink timers, 50ms runs
+  // this affects pattern speeds too.
   mavlinkTimer.Set(&OnMavlinkTimer, 50);
 
   // House cleaning, enable timers
   mavlinkTimer.Enable();
-    
-  enable_mav_request = 1;  
+  
+  // Enable MAV rate request, yes always enable it for in case.   
+  // if MAVLink flows correctly, this flag will be changed to DIS
+  enable_mav_request = EN;  
+  
+  
+  // for now we are always active, maybe in future there will be some
+  // additional features like light conditions that changes it.
+  isActive = EN;  
+  
+  
 } // END of setup();
 
 
@@ -249,29 +273,48 @@ void loop()
 #ifdef HEARTBEAT
   HeartBeat();   // Update heartbeat LED on pin = ledPin (usually D13)
 #endif
-  
-  if(enable_mav_request == 1) { //Request rate control
-    for(int n = 0; n < 3; n++) {
-      request_mavlink_rates();   //Three times to certify it will be readed
-      delay(50);
-    }
-    enable_mav_request = 0;
 
-    delay(2000);
-    waitingMAVBeats = 0;
-    lastMAVBeat = millis();    // Preventing error from delay sensing
-  }  
+  if(isActive) { // main loop
+
+    // Update base lights if any
+    updateBase();
   
-  // Request rates again on every 10th check if mavlink is still dead.
-  if(!mavlink_active && messageCounter == 10) {
-    DPL("Enabling requests again");
-    enable_mav_request = 1;
-    messageCounter = 0;
-  }
+    if(enable_mav_request == 1) { //Request rate control
+      for(int n = 0; n < 3; n++) {
+        request_mavlink_rates();   //Three times to certify it will be readed
+        delay(50);
+      }
+      enable_mav_request = 0;
+
+      delay(2000);
+      waitingMAVBeats = 0;
+      lastMAVBeat = millis();    // Preventing error from delay sensing
+    }  
+  
+    // Request rates again on every 10th check if mavlink is still dead.
+    if(!mavlink_active && messageCounter == 10) {
+      DPL("Enabling requests again");
+      enable_mav_request = 1;
+      messageCounter = 0;
+    }
     
-  read_mavlink();
-  mavlinkTimer.Run();
-  
+    read_mavlink();
+    mavlinkTimer.Run();
+ 
+    curPwm = millis();
+    if(curPwm - prePwm > 5) {
+      // save the last time you blinked the LED 
+      prePwm = curPwm;
+    if (pwm1dir) {
+      pwm1++;
+    } else pwm1--;
+    if(pwm1 >= 255 && pwm1dir == 1) pwm1dir = 0;
+    if(pwm1 <= 20 && pwm1dir == 0) pwm1dir = 1;
+    analogWrite(FRONT, pwm1);
+    //DPL(pwm1);
+    }
+    
+    } else AllOff();
 
 }
 
@@ -284,13 +327,20 @@ void OnMavlinkTimer()
  
   
   if(voltAlarm) {
+    curAlarm = millis();
+    if(curAlarm - preAlarm > 1000) {
+    // save the last time you blinked the LED 
+    preAlarm = curAlarm;   
+
     DPL("ALARM, low voltage");
+    }    
   } 
   
   CheckFlightMode();
   
   // If we are armed, run patterns on read output
   if(isArmed) RunPattern();
+   else ClearPattern();
   
 
 }

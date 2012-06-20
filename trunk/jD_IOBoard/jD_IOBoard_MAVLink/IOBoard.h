@@ -18,7 +18,8 @@
 #define FBWA 12
 #define FBWB 13
 
-
+// MAVLink HeartBeat bits
+#define MOTORS_ARMED 128
 
 
 
@@ -36,7 +37,13 @@ static int IOState[] = {0,0,0,0,0,0};
 static byte patt_pos;
 static byte patt;
 
+static int pwm1;  // value holders for pwm outputs (if any)
+static int pwm2;
+static int pwm3;
 
+static boolean pwm1dir;
+static boolean pwm2dir;
+static boolean pwm3dir;
 
 static float    iob_vbat_A = 0;                 // Battery A voltage in milivolt
 //static float    iob_curr_A = 0;                 // Battery A current

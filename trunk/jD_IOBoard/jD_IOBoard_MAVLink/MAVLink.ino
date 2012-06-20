@@ -90,6 +90,12 @@ void read_mavlink(){
             iob_mode = mavlink_msg_heartbeat_get_custom_mode(&msg);
             iob_nav_mode = 0;
 #endif            
+            if((mavlink_msg_heartbeat_get_base_mode(&msg) & MOTORS_ARMED) == MOTORS_ARMED)
+              isArmed = 1;
+               else 
+              isArmed = 0;
+
+DPL(mavlink_msg_heartbeat_get_base_mode(&msg),DEC);
             lastMAVBeat = millis();
             if(waitingMAVBeats == 1){
               enable_mav_request = 1;

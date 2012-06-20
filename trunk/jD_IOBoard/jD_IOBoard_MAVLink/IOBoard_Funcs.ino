@@ -41,21 +41,18 @@ void HeartBeat() {
   if(curMillis - preMillis > delMillis) {
     // save the last time you blinked the LED 
     preMillis = curMillis;   
-
     // if the LED is off turn it on and vice-versa:
       if (ledState == LOW)
         ledState = HIGH;
       else
         ledState = LOW;
-
     // set the LED with the ledState of the variable:
     digitalWrite(ledPin, ledState); 
-//    dbSerial.println("HB");
       messageCounter++;   
-
     }
 }
 #endif 
+
  
 // Our generic flight modes for ArduCopter & ArduPlane
 void CheckFlightMode() {
@@ -63,25 +60,25 @@ void CheckFlightMode() {
     if(iob_mode == 100) flMode = STAB; // Stabilize
     if(iob_mode == 101) flMode = ACRO; // Acrobatic
     if(iob_mode == 102) flMode = ALTH; // Alt Hold
-    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_WAYPOINT) flMode = AUTO; // Auto
-    if(iob_mode == MAV_MODE_GUIDED && iob_nav_mode == MAV_NAV_WAYPOINT) flMode = GUID; // Guided
-    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_HOLD) flMode = LOIT; // Loiter
-    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_RETURNING) flMode = RETL; // Return to Launch
+//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_WAYPOINT) flMode = AUTO; // Auto
+//    if(iob_mode == MAV_MODE_GUIDED && iob_nav_mode == MAV_NAV_WAYPOINT) flMode = GUID; // Guided
+//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_HOLD) flMode = LOIT; // Loiter
+//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_RETURNING) flMode = RETL; // Return to Launch
     if(iob_mode == 107) flMode = CIRC; // Circle
     if(iob_mode == 108) flMode = POSI; // Position
     if(iob_mode == 109) flMode = LAND; // Land
     if(iob_mode == 110) flMode = OFLO; // OF_Loiter 
   }
     else if(apm_mav_type == 1){ //ArduPlane
-    if(iob_mode == MAV_MODE_TEST1 && iob_nav_mode == MAV_NAV_VECTOR) flMode = STAB; // Stabilize
-    if(iob_mode == MAV_MODE_MANUAL && iob_nav_mode == MAV_NAV_VECTOR) flMode = MANU; // Manual
-    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_LOITER) flMode = LOIT; // Loiter
-    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_RETURNING) flMode = RETL; // Return to Launch
-    if(iob_mode == MAV_MODE_TEST2 && iob_nav_mode == 1) flMode = FBWA; // FLY_BY_WIRE_A
-    if(iob_mode == MAV_MODE_TEST2 && iob_nav_mode == 2) flMode = FBWB; // FLY_BY_WIRE_B
-    if(iob_mode == MAV_MODE_GUIDED) flMode = GUID; // GUIDED
-    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_WAYPOINT) flMode = AUTO; // AUTO
-    if(iob_mode == MAV_MODE_TEST3) flMode = CIRC; // CIRCLE
+//    if(iob_mode == MAV_MODE_TEST1 && iob_nav_mode == MAV_NAV_VECTOR) flMode = STAB; // Stabilize
+//    if(iob_mode == MAV_MODE_MANUAL && iob_nav_mode == MAV_NAV_VECTOR) flMode = MANU; // Manual
+//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_LOITER) flMode = LOIT; // Loiter
+//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_RETURNING) flMode = RETL; // Return to Launch
+//    if(iob_mode == MAV_MODE_TEST2 && iob_nav_mode == 1) flMode = FBWA; // FLY_BY_WIRE_A
+//    if(iob_mode == MAV_MODE_TEST2 && iob_nav_mode == 2) flMode = FBWB; // FLY_BY_WIRE_B
+//    if(iob_mode == MAV_MODE_GUIDED) flMode = GUID; // GUIDED
+//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_WAYPOINT) flMode = AUTO; // AUTO
+//    if(iob_mode == MAV_MODE_TEST3) flMode = CIRC; // CIRCLE
   }
   
   patt = flMode + 1;
@@ -117,6 +114,10 @@ void RunPattern() {
 }
 
 
+void ClearPattern() {
+      digitalWrite(REAR, 0);
+}
+
 // Reads current state of high power output and save them to parameter
 void GetIO() {
   for(int pos = 0; pos <= 5; pos++) {
@@ -129,6 +130,13 @@ void PutIO() {
   for(int pos = 0; pos <= 5; pos++) {
    digitalWrite(Out[pos], IOState[pos]);
   }
+}
+
+
+// Updating base leds state
+void updateBase() {
+ if ((baseState & LED_LEFT) == LED_LEFT) digitalWrite(LEFT, HIGH); 
+ if ((baseState & LED_RIGHT) == LED_RIGHT) digitalWrite(RIGHT, HIGH);   
 }
 
 
