@@ -1,8 +1,6 @@
 /*
 
-  IOBoard general funcion calls
-
-
+  jD-IOBoard general funcion calls
 
 
 */
@@ -56,67 +54,50 @@ void HeartBeat() {
  
 // Our generic flight modes for ArduCopter & ArduPlane
 void CheckFlightMode() {
-  if(apm_mav_type == 2) {  // ArduCopter
-    if(iob_mode == 100) flMode = STAB; // Stabilize
-    if(iob_mode == 101) flMode = ACRO; // Acrobatic
-    if(iob_mode == 102) flMode = ALTH; // Alt Hold
-//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_WAYPOINT) flMode = AUTO; // Auto
-//    if(iob_mode == MAV_MODE_GUIDED && iob_nav_mode == MAV_NAV_WAYPOINT) flMode = GUID; // Guided
-//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_HOLD) flMode = LOIT; // Loiter
-//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_RETURNING) flMode = RETL; // Return to Launch
-    if(iob_mode == 107) flMode = CIRC; // Circle
-    if(iob_mode == 108) flMode = POSI; // Position
-    if(iob_mode == 109) flMode = LAND; // Land
-    if(iob_mode == 110) flMode = OFLO; // OF_Loiter 
+
+  if(apm_mav_type == 2){ // ArduCopter MultiRotor or ArduCopter Heli
+    if(iob_mode == 0) flMode = STAB;   // Stabilize
+    if(iob_mode == 1) flMode = ACRO;   // Acrobatic
+    if(iob_mode == 2) flMode = ALTH;   // Alt Hold
+    if(iob_mode == 3) flMode = AUTO;   // Auto
+    if(iob_mode == 4) flMode = GUID;   // Guided
+    if(iob_mode == 5) flMode = LOIT;   // Loiter
+    if(iob_mode == 6) flMode = RETL;   // Return to Launch
+    if(iob_mode == 7) flMode = CIRC;   // Circle
+    if(iob_mode == 8) flMode = POSI;   // Position
+    if(iob_mode == 9) flMode = LAND;   // Land
+    if(iob_mode == 10) flMode = OFLO;  // OF_Loiter
   }
-    else if(apm_mav_type == 1){ //ArduPlane
-//    if(iob_mode == MAV_MODE_TEST1 && iob_nav_mode == MAV_NAV_VECTOR) flMode = STAB; // Stabilize
-//    if(iob_mode == MAV_MODE_MANUAL && iob_nav_mode == MAV_NAV_VECTOR) flMode = MANU; // Manual
-//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_LOITER) flMode = LOIT; // Loiter
-//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_RETURNING) flMode = RETL; // Return to Launch
-//    if(iob_mode == MAV_MODE_TEST2 && iob_nav_mode == 1) flMode = FBWA; // FLY_BY_WIRE_A
-//    if(iob_mode == MAV_MODE_TEST2 && iob_nav_mode == 2) flMode = FBWB; // FLY_BY_WIRE_B
-//    if(iob_mode == MAV_MODE_GUIDED) flMode = GUID; // GUIDED
-//    if(iob_mode == MAV_MODE_AUTO && iob_nav_mode == MAV_NAV_WAYPOINT) flMode = AUTO; // AUTO
-//    if(iob_mode == MAV_MODE_TEST3) flMode = CIRC; // CIRCLE
-  }
-  
+  else if(apm_mav_type == 1){ // ArduPlane
+    if(iob_mode == 2 ) flMode = STAB;  // Stabilize
+    if(iob_mode == 0) flMode = MANU;   // Manual
+    if(iob_mode == 12) flMode = LOIT;  // Loiter
+    if(iob_mode == 11 ) flMode = RETL; // Return to Launch
+    if(iob_mode == 5 ) flMode = FBWA;  // FLY_BY_WIRE_A
+    if(iob_mode == 6 ) flMode = FBWB;  // FLY_BY_WIRE_B
+    if(iob_mode == 15) flMode = GUID;  // GUIDED
+    if(iob_mode == 10 ) flMode = AUTO; // AUTO
+    if(iob_mode == 1) flMode = CIRC;   // CIRCLE
+  }  
   patt = flMode + 1;
 }
 
-/*  OBSOLETE, moved to MACROS
-// debug message printout 
-void dbPRNL(char outstr[]) {
-#ifdef DEBUGSERIAL
-   dbSerial.println(outstr);
-#endif  
-}
-
-// debug message printout
-void dbPRN(char outstr[]) {
-#ifdef DEBUGSERIAL
-   dbSerial.print(outstr);
-#endif  
-}
-*/
-
-
+// Update main pattern
 void RunPattern() {
-      digitalWrite(REAR, flight_patt[patt][patt_pos]);
-/*      DPL();
-      DPN(patt, DEC);
-      DPN("\t");
-      DPN(patt_pos, DEC);
-      DPN("\t");      
-      DPL(flight_patt[patt][patt_pos],BIN); */
-      patt_pos++;
-      if(patt_pos == 16) patt_pos = 0;
+   digitalWrite(REAR, flight_patt[patt][patt_pos]);
 }
 
-
+// Clear main pattern
 void ClearPattern() {
-      digitalWrite(REAR, 0);
+   digitalWrite(REAR, 0);
 }
+
+// Updating base leds state
+void updateBase() {
+   digitalWrite(LEFT, le_patt[LeRiPatt][patt_pos]);
+   digitalWrite(RIGHT, ri_patt[LeRiPatt][patt_pos]);
+}
+
 
 // Reads current state of high power output and save them to parameter
 void GetIO() {
@@ -133,11 +114,22 @@ void PutIO() {
 }
 
 
-// Updating base leds state
-void updateBase() {
- if ((baseState & LED_LEFT) == LED_LEFT) digitalWrite(LEFT, HIGH); 
- if ((baseState & LED_RIGHT) == LED_RIGHT) digitalWrite(RIGHT, HIGH);   
+// Checking if BIT is active in PARAM, return true if it is, false if not
+byte isBit(byte param, byte bitfield) {
+ if((param & bitfield) == bitfield) return 1;
+  else return 0;  
 }
 
-
-
+void updatePWM() {
+    curPwm = millis();
+    if(curPwm - prePwm > 5) {
+      // save the last time you blinked the LED 
+      prePwm = curPwm;
+    if (pwm1dir) {
+      pwm1++;
+    } else pwm1--;
+    if(pwm1 >= 255 && pwm1dir == 1) pwm1dir = 0;
+    if(pwm1 <= 20 && pwm1dir == 0) pwm1dir = 1;
+    analogWrite(FRONT, pwm1);
+    }
+}
