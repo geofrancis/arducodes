@@ -1,6 +1,10 @@
+
+
+// Some basic defualts
 #define EN  1     // Enable value
 #define DI  0     // Disable value
-
+#define TRUE 1    // Like we would not know what true is
+#define FALSE 0   // or this too...
 
 // Flight mode defines
 #define STAB 0
@@ -21,7 +25,11 @@
 // MAVLink HeartBeat bits
 #define MOTORS_ARMED 128
 
-
+// LEFT/RIGHT Alarm/Info pattern definitions
+#define ALLOK 0
+#define LOWVOLTAGE 1
+#define NOLOCK 4
+#define NOMAVLINK 6
 
 ///////////////////////////
 // Global variables

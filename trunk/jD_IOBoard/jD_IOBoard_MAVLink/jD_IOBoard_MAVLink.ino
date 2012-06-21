@@ -68,14 +68,15 @@
 #undef PSTR 
 #define PSTR(s) (__extension__({static prog_char __c[] PROGMEM = (s); &__c[0];})) 
 
-#define MAVLINK10
-#define HEARTBEAT
-#define DEBUGSERIAL
+#define MAVLINK10     // Are we listening MAVLink 1.0 or 0.9   (0.9 is obsolete now)
+#define HEARTBEAT     // HeartBeat signal
+#define SERDB         // Output debug information to SoftwareSerial 
+#define ONOFFSW       // Do we have OnOff switch connected in pins 
 
 /* **********************************************/
 /* ***************** INCLUDES *******************/
 
-//#define membug 
+#define membug 
 //#define FORCEINIT  // You should never use this unless you know what you are doing 
 
 
@@ -123,12 +124,13 @@
 #define FRONT 9
 #define REAR 10
 
-#define LED_LEFT 1
-#define LED_RIGHT 2
+//#define LED_LEFT 1
+//#define LED_RIGHT 2
 
 #define Circle_Dly 1000
 
 #define ledPin 13     // Heartbeat LED if any
+//#define ledPin 13     // Heartbeat LED if any
 #define LOOPTIME  50  // Main loop time for heartbeat
 //#define BAUD 57600    // Serial speed
 
@@ -141,7 +143,7 @@
 /* Patterns and other variables */
 
 // LED patterns
-static byte flight_patt[10][16] = {
+static byte flight_patt[16][16] = {
   { 0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0  },    // 0
   { 1,1,1,1,0,0,0,0 ,1,1,1,1,0,0,0,0  },    // 1
   { 1,1,1,1,1,0,0,0 ,0,0,0,0,0,1,0,0  },    // 2
@@ -151,7 +153,35 @@ static byte flight_patt[10][16] = {
   { 1,0,1,0,1,0,1,0 ,1,0,1,0,1,0,1,0  },    // 6
   { 1,0,1,0,0,0,0,0 ,1,0,1,0,0,0,0,0  },    // 7
   { 0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0  },    // 8
-  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  }};   // 9
+  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 9
+  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 10
+  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 11
+  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 12
+  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 13
+  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 14
+  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  }};   // 15
+
+static byte le_patt[8][16] = {
+  { 1,1,1,1,1,1,1,1 ,1,1,1,1,1,1,1,1  },    // 0
+  { 0,1,0,1,0,1,0,1 ,0,1,0,1,0,1,0,1  },    // 1
+  { 1,0,1,0,1,0,1,0 ,1,0,1,0,1,0,1,0  },    // 2
+  { 1,1,0,0,1,1,0,0 ,1,1,0,0,1,1,0,0  },    // 3
+  { 1,1,1,1,1,1,1,1 ,1,1,0,0,1,1,0,0  },    // 4
+  { 1,1,1,1,1,1,1,1 ,1,1,1,1,1,1,1,1  },    // 5
+  { 0,0,0,0,0,0,0,0 ,1,1,1,1,1,1,1,1  },    // 6
+  { 0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0  }};   // 7
+  
+static byte ri_patt[8][16] = {
+  { 1,1,1,1,1,1,1,1 ,1,1,1,1,1,1,1,1  },    // 0
+  { 1,0,1,0,1,0,1,0 ,1,0,1,0,1,0,1,0  },    // 1
+  { 1,0,1,0,1,0,1,0 ,1,0,1,0,1,0,1,0  },    // 2
+  { 1,1,0,0,1,1,0,0 ,1,1,0,0,1,1,0,0  },    // 3
+  { 1,1,1,1,1,1,1,1 ,1,1,0,0,1,1,0,0  },    // 4
+  { 1,1,1,1,1,1,1,1 ,1,1,1,1,1,1,1,1  },    // 5
+  { 1,1,1,1,1,1,1,1 ,0,0,0,0,0,0,0,0  },    // 6
+  { 0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0  }};   // 7
+
+static byte LeRiPatt = NOMAVLINK; // default pattern is full ON
 
 static long preMillis;
 static long curMillis;
@@ -170,7 +200,6 @@ byte hbStatus;
 // General states
 byte isArmed = 0;
 byte isActive;
-// byte flMode; moved to .h
 
 byte voltAlarm;  // Alarm holder for internal voltage alarms, trigger 4 vols
 
@@ -178,7 +207,6 @@ float boardVoltage;
 int i2cErrorCount;
 
 byte ledState;
-
 byte baseState;  // Bit mask for different basic output LEDs like so called Left/Right 
 
 byte debug = 0;
@@ -190,8 +218,9 @@ FastSerialPort0(Serial);
 
 SimpleTimer  mavlinkTimer;
 
+#ifdef SERDB
 SoftwareSerial dbSerial(6,5);
-
+#endif
 
 /* **********************************************/
 /* ***************** SETUP() *******************/
@@ -202,10 +231,12 @@ void setup()
   // Initialize Serial port, speed
   Serial.begin(TELEMETRY_SPEED);
 
+#ifdef SERDB
+  // Our software serial is connected on pins D6 and D5
   dbSerial.begin(57600);
   DPL("Debug Serial ready... ");
   DPL("No input from this serialport.  ");
-  
+#endif  
     
   // setup mavlink port
   mavlink_comm_0_port = &Serial;
@@ -228,8 +259,8 @@ void setup()
   }
 
   // Activate Left/Right lights
-  baseState |= LED_LEFT;
-  baseState |= LED_RIGHT;
+//  baseState |= LED_LEFT;
+//  baseState |= LED_RIGHT;
   updateBase();
 //  digitalWrite(LEFT, EN);
 //  digitalWrite(RIGHT, EN);
@@ -239,6 +270,7 @@ void setup()
   // Jani's debug stuff  
 #ifdef membug
   Serial.println(freeMem());
+  DPL(freeMem());
 #endif
 
   // Startup MAVLink timers, 50ms runs
@@ -280,15 +312,24 @@ void loop()
     updateBase();
   
     if(enable_mav_request == 1) { //Request rate control
-      for(int n = 0; n < 3; n++) {
-        request_mavlink_rates();   //Three times to certify it will be readed
-        delay(50);
-      }
-      enable_mav_request = 0;
+      
+        // During rate requsst, LEFT/RIGHT outputs are HIGH
+        digitalWrite(LEFT, EN);
+        digitalWrite(RIGHT, EN);
 
-      delay(2000);
-      waitingMAVBeats = 0;
-      lastMAVBeat = millis();    // Preventing error from delay sensing
+        for(int n = 0; n < 3; n++) {
+          request_mavlink_rates();   //Three times to certify it will be readed
+          delay(50);
+        }
+        enable_mav_request = 0;
+
+        // 2 second delay, during delay we still update PWM output
+        for(int loopy = 0; loopy <= 2000; loopy++) {
+          delay(1);
+          updatePWM();
+        }
+        waitingMAVBeats = 0;
+        lastMAVBeat = millis();    // Preventing error from delay sensing
     }  
   
     // Request rates again on every 10th check if mavlink is still dead.
@@ -296,25 +337,15 @@ void loop()
       DPL("Enabling requests again");
       enable_mav_request = 1;
       messageCounter = 0;
-    }
+      LeRiPatt = 6;
+    } 
     
     read_mavlink();
     mavlinkTimer.Run();
- 
-    curPwm = millis();
-    if(curPwm - prePwm > 5) {
-      // save the last time you blinked the LED 
-      prePwm = curPwm;
-    if (pwm1dir) {
-      pwm1++;
-    } else pwm1--;
-    if(pwm1 >= 255 && pwm1dir == 1) pwm1dir = 0;
-    if(pwm1 <= 20 && pwm1dir == 0) pwm1dir = 1;
-    analogWrite(FRONT, pwm1);
-    //DPL(pwm1);
-    }
-    
-    } else AllOff();
+
+    updatePWM(); 
+
+  } else AllOff();
 
 }
 
@@ -324,24 +355,47 @@ void loop()
 // Function that is called every 120ms
 void OnMavlinkTimer()
 {
+  // First we update pattern positions 
+  patt_pos++;
+  if(patt_pos == 16) patt_pos = 0;
  
-  
-  if(voltAlarm) {
-    curAlarm = millis();
-    if(curAlarm - preAlarm > 1000) {
-    // save the last time you blinked the LED 
-    preAlarm = curAlarm;   
-
-    DPL("ALARM, low voltage");
-    }    
-  } 
-  
+  // Check on which flight mode we are 
   CheckFlightMode();
+
+    
+  // General condition checks starts from here
+  //
+    
+  // Checks that we handle only if MAVLink is active
+  if(mavlink_active) {
+    if(iob_fix_type <= 2) LeRiPatt = NOLOCK;
+    if(iob_fix_type >= 3) LeRiPatt = ALLOK;
+//   DPL(iob_fix_type, DEC); 
+//   DPL(iob_satellites_visible, DEC); 
+
+    // CPU board voltage alarm  
+    if(voltAlarm) {
+      LeRiPatt = LOWVOLTAGE;  
+      DPL("ALARM, low voltage");
+    }     
+  }
   
+  
+    
   // If we are armed, run patterns on read output
   if(isArmed) RunPattern();
    else ClearPattern();
   
+  // Update base LEDs  
+  updateBase();
+
+  if(messageCounter >= 3 && mavlink_active) {
+    DPL("We lost MAVLink");
+    mavlink_active = 0;
+    messageCounter = 0;
+    LeRiPatt = NOMAVLINK;
+  }
+//  DPL(messageCounter);
 
 }
 

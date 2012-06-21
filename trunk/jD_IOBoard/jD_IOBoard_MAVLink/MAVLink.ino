@@ -49,7 +49,7 @@ void read_mavlink(){
   mavlink_message_t msg; 
   mavlink_status_t status;
   
-  //grabing data 
+  // grabing data 
   while(Serial.available() > 0) { 
     uint8_t c = Serial.read();
             /* allow CLI to be started by hitting enter 3 times, if no
@@ -60,21 +60,13 @@ void read_mavlink(){
             } else {
                 crlf_count = 0;
             }
-//            if (crlf_count == 3) {
-//              uploadFont();
-//            }
         }
     
     // trying to grab msg  
     if(mavlink_parse_char(MAVLINK_COMM_0, c, &msg, &status)) {
-//       dbSerial.println("GOT MAVLINK");
-//       if(hbStatus) 
-//        hbStatus = 0;
-//       else
-//        hbStatus = 1;
-//       digitalWrite(O1, hbStatus); 
-        
+       messageCounter = 0; 
        mavlink_active = 1;
+       if(mavlink_active && LeRiPatt == 6) LeRiPatt = 0;
       // handle msg
 //      dbSerial.println(msg.msgid,DEC);
 
@@ -86,42 +78,58 @@ void read_mavlink(){
 	    apm_mav_system    = msg.sysid;
 	    apm_mav_component = msg.compid;
             apm_mav_type      = mavlink_msg_heartbeat_get_type(&msg);
-#ifdef MAVLINK10             
+
+//#ifdef MAVLINK10   obsolete, always MAV10
             iob_mode = mavlink_msg_heartbeat_get_custom_mode(&msg);
             iob_nav_mode = 0;
-#endif            
-            if((mavlink_msg_heartbeat_get_base_mode(&msg) & MOTORS_ARMED) == MOTORS_ARMED)
+//#endif            
+//            if((mavlink_msg_heartbeat_get_base_mode(&msg) & MOTORS_ARMED) == MOTORS_ARMED)
+            if(isBit(mavlink_msg_heartbeat_get_base_mode(&msg),MOTORS_ARMED))
               isArmed = 1;
                else 
               isArmed = 0;
 
-DPL(mavlink_msg_heartbeat_get_base_mode(&msg),DEC);
             lastMAVBeat = millis();
             if(waitingMAVBeats == 1){
               enable_mav_request = 1;
             }
+
+#ifdef SERDB            
+            dbSerial.print("MAV: ");
+            dbSerial.print((mavlink_msg_heartbeat_get_base_mode(&msg),DEC));
+            dbSerial.print("  Modes: ");
+            dbSerial.print(iob_mode);
+            dbSerial.print("  Armed: ");
+            dbSerial.print(isArmed);
+            dbSerial.print("  FIX: ");
+            dbSerial.print(iob_fix_type);
+            dbSerial.print("  Sats: ");
+            dbSerial.print(iob_satellites_visible);
+
+            dbSerial.print("  CPUVolt: ");
+            dbSerial.print(boardVoltage);
+
+            dbSerial.println();
+#endif           
           }
           break;
         case MAVLINK_MSG_ID_SYS_STATUS:
           { 
   //          dbPRNL("MAV SYS_STATUS");
 
+/*
 #ifndef MAVLINK10            
             iob_vbat_A = (mavlink_msg_sys_status_get_vbat(&msg) / 1000.0f);
             iob_mode = mavlink_msg_sys_status_get_mode(&msg);
             iob_nav_mode = mavlink_msg_sys_status_get_nav_mode(&msg);
 #else
+*/
             iob_vbat_A = (mavlink_msg_sys_status_get_voltage_battery(&msg) / 1000.0f);
-#endif            
-            iob_battery_remaining_A = mavlink_msg_sys_status_get_battery_remaining(&msg);
- 
-            dbSerial.print("Modes: ");
-            dbSerial.print(iob_mode);
-            dbSerial.print(", ");
-            dbSerial.print(iob_nav_mode);
-            dbSerial.println();
+//#endif           
 
- 
+
+            iob_battery_remaining_A = mavlink_msg_sys_status_get_battery_remaining(&msg);
+
             //iob_mode = apm_mav_component;//Debug
             //iob_nav_mode = apm_mav_system;//Debug
           }
