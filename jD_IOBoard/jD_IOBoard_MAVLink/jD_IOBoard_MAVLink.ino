@@ -355,48 +355,52 @@ void loop()
 // Function that is called every 120ms
 void OnMavlinkTimer()
 {
-  // First we update pattern positions 
-  patt_pos++;
-  if(patt_pos == 16) patt_pos = 0;
- 
-  // Check on which flight mode we are 
-  CheckFlightMode();
-
+  if(millis() < (lastMAVBeat + 2000)) {
+    // First we update pattern positions 
+    patt_pos++;
+    if(patt_pos == 16) patt_pos = 0;
+   
+    // Check on which flight mode we are 
+    CheckFlightMode();
+  
+      
+    // General condition checks starts from here
+    //
+      
+    // Checks that we handle only if MAVLink is active
+    if(mavlink_active) {
+      if(iob_fix_type <= 2) LeRiPatt = NOLOCK;
+      if(iob_fix_type >= 3) LeRiPatt = ALLOK;
+  //   DPL(iob_fix_type, DEC); 
+  //   DPL(iob_satellites_visible, DEC); 
+  
+      // CPU board voltage alarm  
+      if(voltAlarm) {
+        LeRiPatt = LOWVOLTAGE;  
+        DPL("ALARM, low voltage");
+      }     
+    }
     
-  // General condition checks starts from here
-  //
     
-  // Checks that we handle only if MAVLink is active
-  if(mavlink_active) {
-    if(iob_fix_type <= 2) LeRiPatt = NOLOCK;
-    if(iob_fix_type >= 3) LeRiPatt = ALLOK;
-//   DPL(iob_fix_type, DEC); 
-//   DPL(iob_satellites_visible, DEC); 
-
-    // CPU board voltage alarm  
-    if(voltAlarm) {
-      LeRiPatt = LOWVOLTAGE;  
-      DPL("ALARM, low voltage");
-    }     
+      
+    // If we are armed, run patterns on read output
+    if(isArmed) RunPattern();
+     else ClearPattern();
+    
+    // Update base LEDs  
+    updateBase();
+  
+    if(messageCounter >= 3 && mavlink_active) {
+      DPL("We lost MAVLink");
+      mavlink_active = 0;
+      messageCounter = 0;
+      LeRiPatt = NOMAVLINK;
+    }
+  //  DPL(messageCounter);
   }
-  
-  
-    
-  // If we are armed, run patterns on read output
-  if(isArmed) RunPattern();
-   else ClearPattern();
-  
-  // Update base LEDs  
-  updateBase();
-
-  if(messageCounter >= 3 && mavlink_active) {
-    DPL("We lost MAVLink");
-    mavlink_active = 0;
-    messageCounter = 0;
-    LeRiPatt = NOMAVLINK;
+  else{
+    waitingMAVBeats == 1;
   }
-//  DPL(messageCounter);
-
 }
 
 
