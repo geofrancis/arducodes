@@ -399,7 +399,7 @@ void OnMavlinkTimer()
   //  DPL(messageCounter);
   }
   else{
-    waitingMAVBeats == 1;
+    waitingMAVBeats = 1;
   }
 }
 
