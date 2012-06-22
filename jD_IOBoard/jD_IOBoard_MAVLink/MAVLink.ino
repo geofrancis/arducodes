@@ -28,14 +28,15 @@ static int parse_error = 0;
 void request_mavlink_rates()
 {
   DPL("req rates");
-  const int  maxStreams = 6;
+  const int  maxStreams = 7;
   const uint8_t MAVStreams[maxStreams] = {MAV_DATA_STREAM_RAW_SENSORS,
 					  MAV_DATA_STREAM_EXTENDED_STATUS,
                                           MAV_DATA_STREAM_RC_CHANNELS,
 					  MAV_DATA_STREAM_POSITION,
                                           MAV_DATA_STREAM_EXTRA1, 
-                                          MAV_DATA_STREAM_EXTRA2};
-  const uint16_t MAVRates[maxStreams] = {0x02, 0x02, 0x05, 0x02, 0x05, 0x02};
+                                          MAV_DATA_STREAM_EXTRA2,
+                                          MAV_DATA_STREAM_EXTRA3};
+  const uint16_t MAVRates[maxStreams] = {0x02, 0x02, 0x05, 0x02, 0x05, 0x02, 0x02};
 //  const uint16_t MAVRates[maxStreams] = {0x10, 0x03, 0x01, 0x03, 0x05, 0x02};
 
   for (int i=0; i < maxStreams; i++) {
