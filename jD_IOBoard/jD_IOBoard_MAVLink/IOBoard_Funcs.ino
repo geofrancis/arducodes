@@ -19,7 +19,7 @@ void SlowRoll(int FlashDly) {
 void AllOn() {
   if(debug) Serial.println("AllOn");
    for(int looper = 0; looper <= 5; looper++) {
-    digitalWrite(Out[looper],EN);
+    digitalWrite(Out[looper], EN);
   }  
 }
 
@@ -28,17 +28,17 @@ void AllOn() {
 void AllOff() {
   if(debug) Serial.println("AllOff");
    for(int looper = 0; looper <= 5; looper++) {
-    digitalWrite(Out[looper],DI);
+    digitalWrite(Out[looper], DI);
   }  
 }
 
 
 #ifdef HEARTBEAT
 void HeartBeat() {
-   curMillis = millis();
-  if(curMillis - preMillis > delMillis) {
+  c_hbMillis = millis();
+  if(c_hbMillis - p_hbMillis > d_hbMillis) {
     // save the last time you blinked the LED 
-    preMillis = curMillis;   
+    p_hbMillis = c_hbMillis;   
     // if the LED is off turn it on and vice-versa:
       if (ledState == LOW)
         ledState = HIGH;
@@ -46,8 +46,8 @@ void HeartBeat() {
         ledState = LOW;
     // set the LED with the ledState of the variable:
     digitalWrite(ledPin, ledState); 
-      messageCounter++;   
-    }
+    messageCounter++;   
+  }
 }
 #endif 
 
@@ -55,7 +55,7 @@ void HeartBeat() {
 // Our generic flight modes for ArduCopter & ArduPlane
 void CheckFlightMode() {
 
-  if(apm_mav_type == 2){ // ArduCopter MultiRotor or ArduCopter Heli
+  if(apm_mav_type == 2) { // ArduCopter MultiRotor or ArduCopter Heli
     if(iob_mode == 0) flMode = STAB;   // Stabilize
     if(iob_mode == 1) flMode = ACRO;   // Acrobatic
     if(iob_mode == 2) flMode = ALTH;   // Alt Hold
@@ -68,7 +68,7 @@ void CheckFlightMode() {
     if(iob_mode == 9) flMode = LAND;   // Land
     if(iob_mode == 10) flMode = OFLO;  // OF_Loiter
   }
-  else if(apm_mav_type == 1){ // ArduPlane
+  else if(apm_mav_type == 1) { // ArduPlane
     if(iob_mode == 2 ) flMode = STAB;  // Stabilize
     if(iob_mode == 0) flMode = MANU;   // Manual
     if(iob_mode == 12) flMode = LOIT;  // Loiter
