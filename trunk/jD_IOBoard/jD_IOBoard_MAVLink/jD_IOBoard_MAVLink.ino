@@ -56,7 +56,7 @@
 //
 // More information, check http://www.jdrones.com/jDoc
 //
-/******************************************************************************/
+/* **************************************************************************** */
  
 /* ************************************************************ */
 /* **************** MAIN PROGRAM - MODULES ******************** */
@@ -110,7 +110,7 @@
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
-#define VER "v1.0"
+#define VER "v1.1"
 
 #define O1 8      // High power Output 1
 #define O2 9      // High power Output 2, PWM
@@ -187,11 +187,15 @@ static long preMillis;
 static long curMillis;
 static long delMillis = 1000;
 
+static long p_preMillis;
+static long p_curMillis;
+static int  p_delMillis = 50;
+
 static int curPwm;
 static int prePwm;
 
-static int preAlarm;
-static int curAlarm;
+//static int preAlarm;
+//static int curAlarm;
 
 int messageCounter;
 static bool mavlink_active;
@@ -307,12 +311,22 @@ void loop()
 #endif
 
   if(isActive) { // main loop
+    p_curMillis = millis();
+    if(p_curMillis - p_preMillis > p_delMillis) {
+      // save the last time you blinked the LED 
+      p_preMillis = p_curMillis;   
+
+      // First we update pattern positions 
+      patt_pos++;
+      if(patt_pos == 16) patt_pos = 0;
+    }
+
 
     // Update base lights if any
     updateBase();
   
     if(enable_mav_request == 1) { //Request rate control
-      
+    DPL("IN ENA REQ");
         // During rate requsst, LEFT/RIGHT outputs are HIGH
         digitalWrite(LEFT, EN);
         digitalWrite(RIGHT, EN);
@@ -330,6 +344,7 @@ void loop()
         }
         waitingMAVBeats = 0;
         lastMAVBeat = millis();    // Preventing error from delay sensing
+        DPL("OUT ENA REQ");
     }  
   
     // Request rates again on every 10th check if mavlink is still dead.
@@ -357,8 +372,8 @@ void OnMavlinkTimer()
 {
   if(millis() < (lastMAVBeat + 2000)) {
     // First we update pattern positions 
-    patt_pos++;
-    if(patt_pos == 16) patt_pos = 0;
+//    patt_pos++;
+//    if(patt_pos == 16) patt_pos = 0;
    
     // Check on which flight mode we are 
     CheckFlightMode();
@@ -397,9 +412,11 @@ void OnMavlinkTimer()
       LeRiPatt = NOMAVLINK;
     }
   //  DPL(messageCounter);
-  }
-  else{
+  
+  // End of OnMavlinkTimer
+  } else {
     waitingMAVBeats = 1;
+    LeRiPatt = NOMAVLINK;
   }
 }
 

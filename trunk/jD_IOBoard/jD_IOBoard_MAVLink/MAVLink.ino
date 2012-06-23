@@ -10,13 +10,14 @@ mavlink_system_t mavlink_system = {12,1,0,0};
 
 #include "Mavlink_compat.h"
 
-#ifdef MAVLINK10
+//#ifdef MAVLINK10
 #include "../GCS_MAVLink/include/mavlink/v1.0/mavlink_types.h"
 #include "../GCS_MAVLink/include/mavlink/v1.0/ardupilotmega/mavlink.h"
-#else
-#include "../GCS_MAVLink/include/mavlink/v0.9/mavlink_types.h"
-#include "../GCS_MAVLink/include/mavlink/v0.9/ardupilotmega/mavlink.h"
-#endif
+
+//#else
+//#include "../GCS_MAVLink/include/mavlink/v0.9/mavlink_types.h"
+//#include "../GCS_MAVLink/include/mavlink/v0.9/ardupilotmega/mavlink.h"
+//#endif
 
 // true when we have received at least 1 MAVLink packet
 //static bool mavlink_active;
@@ -27,7 +28,8 @@ static int parse_error = 0;
 
 void request_mavlink_rates()
 {
-  DPL("req rates");
+  DPL("Requesting rates");
+
   const int  maxStreams = 7;
   const uint8_t MAVStreams[maxStreams] = {MAV_DATA_STREAM_RAW_SENSORS,
 					  MAV_DATA_STREAM_EXTENDED_STATUS,
@@ -36,8 +38,8 @@ void request_mavlink_rates()
                                           MAV_DATA_STREAM_EXTRA1, 
                                           MAV_DATA_STREAM_EXTRA2,
                                           MAV_DATA_STREAM_EXTRA3};
+                                          
   const uint16_t MAVRates[maxStreams] = {0x02, 0x02, 0x05, 0x02, 0x05, 0x02, 0x02};
-//  const uint16_t MAVRates[maxStreams] = {0x10, 0x03, 0x01, 0x03, 0x05, 0x02};
 
   for (int i=0; i < maxStreams; i++) {
     	  mavlink_msg_request_data_stream_send(MAVLINK_COMM_0,
@@ -69,21 +71,19 @@ void read_mavlink(){
        mavlink_active = 1;
        if(mavlink_active && LeRiPatt == 6) LeRiPatt = 0;
       // handle msg
-//      dbSerial.println(msg.msgid,DEC);
 
       switch(msg.msgid) {
         case MAVLINK_MSG_ID_HEARTBEAT:
           {
-            DPL("MAV HB");
+            DPL("MAVink HeartBeat");
             mavbeat = 1;
 	    apm_mav_system    = msg.sysid;
 	    apm_mav_component = msg.compid;
             apm_mav_type      = mavlink_msg_heartbeat_get_type(&msg);
 
-//#ifdef MAVLINK10   obsolete, always MAV10
             iob_mode = mavlink_msg_heartbeat_get_custom_mode(&msg);
             iob_nav_mode = 0;
-//#endif            
+
 //            if((mavlink_msg_heartbeat_get_base_mode(&msg) & MOTORS_ARMED) == MOTORS_ARMED)
             if(isBit(mavlink_msg_heartbeat_get_base_mode(&msg),MOTORS_ARMED))
               isArmed = 1;
@@ -96,39 +96,32 @@ void read_mavlink(){
             }
 
 #ifdef SERDB            
-            dbSerial.print("MAV: ");
-            dbSerial.print((mavlink_msg_heartbeat_get_base_mode(&msg),DEC));
-            dbSerial.print("  Modes: ");
-            dbSerial.print(iob_mode);
-            dbSerial.print("  Armed: ");
-            dbSerial.print(isArmed);
-            dbSerial.print("  FIX: ");
-            dbSerial.print(iob_fix_type);
-            dbSerial.print("  Sats: ");
-            dbSerial.print(iob_satellites_visible);
+            if(debug) {
+              dbSerial.print("MAV: ");
+              dbSerial.print((mavlink_msg_heartbeat_get_base_mode(&msg),DEC));
+              dbSerial.print("  Modes: ");
+              dbSerial.print(iob_mode);
+              dbSerial.print("  Armed: ");
+              dbSerial.print(isArmed);
+              dbSerial.print("  FIX: ");
+              dbSerial.print(iob_fix_type);
+              dbSerial.print("  Sats: ");
+              dbSerial.print(iob_satellites_visible);
+              dbSerial.print("  CPUVolt: ");
+              dbSerial.print(boardVoltage);
+              dbSerial.print("  BatVolt: ");
+              dbSerial.print(iob_vbat_A);
 
-            dbSerial.print("  CPUVolt: ");
-            dbSerial.print(boardVoltage);
-
-            dbSerial.println();
+              dbSerial.println();
+            } 
 #endif           
           }
           break;
+          
         case MAVLINK_MSG_ID_SYS_STATUS:
           { 
   //          dbPRNL("MAV SYS_STATUS");
-
-/*
-#ifndef MAVLINK10            
-            iob_vbat_A = (mavlink_msg_sys_status_get_vbat(&msg) / 1000.0f);
-            iob_mode = mavlink_msg_sys_status_get_mode(&msg);
-            iob_nav_mode = mavlink_msg_sys_status_get_nav_mode(&msg);
-#else
-*/
             iob_vbat_A = (mavlink_msg_sys_status_get_voltage_battery(&msg) / 1000.0f);
-//#endif           
-
-
             iob_battery_remaining_A = mavlink_msg_sys_status_get_battery_remaining(&msg);
 
             //iob_mode = apm_mav_component;//Debug
@@ -139,7 +132,7 @@ void read_mavlink(){
 #ifndef MAVLINK10 
         case MAVLINK_MSG_ID_GPS_RAW:
           {
-//            dbPRNL("MAV ID GPS");
+//         dbPRNL("MAV ID GPS");
             iob_fix_type = mavlink_msg_gps_raw_get_fix_type(&msg);
 //            dbPRN("GPS FIX: ");
 //            dbSerial.println(iob_fix_type);
@@ -175,7 +168,7 @@ void read_mavlink(){
             boardVoltage = mavlink_msg_hwstatus_get_Vcc(&msg) / 1000.0f;      
             i2cErrorCount = mavlink_msg_hwstatus_get_I2Cerr(&msg);
             //DPL(boardVoltage);
-           if(boardVoltage < 4.0) {
+           if(boardVoltage != 0 && boardVoltage < 4.0) {
               voltAlarm = 1;
            } else voltAlarm = 0;
           }
