@@ -5,14 +5,10 @@
   Author     : Jani Hirvinen, <jphelirc@gmail.com>
 
 
-
-
-
-
-
-
-
-
+  TODO:
+  - EEPROM pattern saving
+  - Settings saving to EEPROM
+  - Beeper functions for highpower output
 
 
 

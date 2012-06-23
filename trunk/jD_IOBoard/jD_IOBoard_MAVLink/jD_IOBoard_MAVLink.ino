@@ -183,10 +183,6 @@ static byte ri_patt[8][16] = {
 
 static byte LeRiPatt = NOMAVLINK; // default pattern is full ON
 
-static long preMillis;
-static long curMillis;
-static long delMillis = 1000;
-
 static long p_preMillis;
 static long p_curMillis;
 static int  p_delMillis = 50;
@@ -326,25 +322,25 @@ void loop()
     updateBase();
   
     if(enable_mav_request == 1) { //Request rate control
-    DPL("IN ENA REQ");
-        // During rate requsst, LEFT/RIGHT outputs are HIGH
-        digitalWrite(LEFT, EN);
-        digitalWrite(RIGHT, EN);
+      //DPL("IN ENA REQ");
+      // During rate requsst, LEFT/RIGHT outputs are HIGH
+      digitalWrite(LEFT, EN);
+      digitalWrite(RIGHT, EN);
 
-        for(int n = 0; n < 3; n++) {
-          request_mavlink_rates();   //Three times to certify it will be readed
-          delay(50);
-        }
-        enable_mav_request = 0;
+      for(int n = 0; n < 3; n++) {
+        request_mavlink_rates();   //Three times to certify it will be readed
+        delay(50);
+      }
+      enable_mav_request = 0;
 
-        // 2 second delay, during delay we still update PWM output
-        for(int loopy = 0; loopy <= 2000; loopy++) {
-          delay(1);
-          updatePWM();
-        }
-        waitingMAVBeats = 0;
-        lastMAVBeat = millis();    // Preventing error from delay sensing
-        DPL("OUT ENA REQ");
+      // 2 second delay, during delay we still update PWM output
+      for(int loopy = 0; loopy <= 2000; loopy++) {
+        delay(1);
+        updatePWM();
+      }
+      waitingMAVBeats = 0;
+      lastMAVBeat = millis();    // Preventing error from delay sensing
+      //DPL("OUT ENA REQ");
     }  
   
     // Request rates again on every 10th check if mavlink is still dead.
@@ -371,14 +367,10 @@ void loop()
 void OnMavlinkTimer()
 {
   if(millis() < (lastMAVBeat + 2000)) {
-    // First we update pattern positions 
-//    patt_pos++;
-//    if(patt_pos == 16) patt_pos = 0;
    
     // Check on which flight mode we are 
     CheckFlightMode();
-  
-      
+        
     // General condition checks starts from here
     //
       
