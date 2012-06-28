@@ -190,6 +190,12 @@ static int  p_delMillis = 50;
 static int curPwm;
 static int prePwm;
 
+static long f_preMillis;
+static long f_curMillis;
+static int f_delMillis = 200;
+
+
+
 //static int preAlarm;
 //static int curAlarm;
 
@@ -219,7 +225,7 @@ FastSerialPort0(Serial);
 SimpleTimer  mavlinkTimer;
 
 #ifdef SERDB
-SoftwareSerial dbSerial(6,5);
+SoftwareSerial dbSerial(6,5,true);
 #endif
 
 /* **********************************************/
@@ -233,7 +239,8 @@ void setup()
 
 #ifdef SERDB
   // Our software serial is connected on pins D6 and D5
-  dbSerial.begin(57600);
+//  dbSerial.begin(57600);
+  dbSerial.begin(9600);
   DPL("Debug Serial ready... ");
   DPL("No input from this serialport.  ");
 #endif  
@@ -247,11 +254,11 @@ void setup()
   }
 
   // Initial 
-  for(int loopy = 0; loopy <= 2; loopy++) {
+  for(int loopy = 0; loopy <= 5; loopy++) {
    SlowRoll(25); 
   }
 
-  for(int loopy = 0; loopy <= 1; loopy++) {
+  for(int loopy = 0; loopy <= 2 ; loopy++) {
     AllOn();
     delay(100);
     AllOff();
@@ -357,6 +364,9 @@ void loop()
     updatePWM(); 
 
   } else AllOff();
+  
+  
+  
 
 }
 
@@ -387,9 +397,7 @@ void OnMavlinkTimer()
         DPL("ALARM, low voltage");
       }     
     }
-    
-    
-      
+        
     // If we are armed, run patterns on read output
     if(isArmed) RunPattern();
      else ClearPattern();
