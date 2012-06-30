@@ -28,8 +28,13 @@
 // LEFT/RIGHT Alarm/Info pattern definitions
 #define ALLOK 0
 #define LOWVOLTAGE 1
+//#define NOTHINGYET 2
+//#define NOTHINGYET 3
 #define NOLOCK 4
+//#define NOTHINGYET 5
 #define NOMAVLINK 6
+//#define NOTHINGYET 7
+
 
 ///////////////////////////
 // Global variables
