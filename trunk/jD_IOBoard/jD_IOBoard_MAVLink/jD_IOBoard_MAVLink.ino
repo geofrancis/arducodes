@@ -237,13 +237,7 @@ void setup()
   }
 
   // Activate Left/Right lights
-//  baseState |= LED_LEFT;
-//  baseState |= LED_RIGHT;
   updateBase();
-//  digitalWrite(LEFT, EN);
-//  digitalWrite(RIGHT, EN);
-
-
 
   // Jani's debug stuff  
 #ifdef membug
@@ -294,7 +288,6 @@ void loop()
       patt_pos++;
       if(patt_pos == 16) patt_pos = 0;
     }
-
 
     // Update base lights if any
     updateBase();
