@@ -87,7 +87,17 @@ static boolean  enable_mav_request = 0;
 
 int tempvar;      // Temporary variable used on many places around the IOBoard
 
+// General states
 byte flMode;      // Our current flight mode as defined
+byte isArmed = 0;
+byte isActive;
+
+// OUTPUT LED dynamic place holders
+byte LEFT;
+byte RIGHT;
+byte FRONT;
+byte REAR;
+byte ledPin;    // Heartbeat LED place holder if any
 
 
 // Left/Right static patterns
