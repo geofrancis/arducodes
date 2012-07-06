@@ -66,22 +66,22 @@ void writeFactorySettings() {
 
  // Default patterns 17-32
  // Reserved, write full NULL
- writeEP2(pat17_ADDR, 0x00, 0x00);
- writeEP2(pat18_ADDR, 0x00, 0x00);
- writeEP2(pat19_ADDR, 0x00, 0x00);
- writeEP2(pat20_ADDR, 0x00, 0x00);
- writeEP2(pat21_ADDR, 0x00, 0x00);
- writeEP2(pat22_ADDR, 0x00, 0x00);
- writeEP2(pat23_ADDR, 0x00, 0x00);
- writeEP2(pat24_ADDR, 0x00, 0x00);
- writeEP2(pat25_ADDR, 0x00, 0x00);
- writeEP2(pat26_ADDR, 0x00, 0x00);
- writeEP2(pat27_ADDR, 0x00, 0x00);
- writeEP2(pat28_ADDR, 0x00, 0x00);
- writeEP2(pat29_ADDR, 0x00, 0x00);
- writeEP2(pat30_ADDR, 0x00, 0x00);
- writeEP2(pat31_ADDR, 0x00, 0x00);
- writeEP2(pat32_ADDR, 0x00, 0x00);
+ writeEP2(pat17_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat18_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat19_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat20_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat21_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat22_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat23_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat24_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat25_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat26_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat27_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat28_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat29_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat30_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat31_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat32_ADDR, 0b00000000, 0b00000000);
  
  // Default pattern - flight mode binds
  writeEP2(mbind01_ADDR, 0x00, 0x00);
@@ -108,10 +108,6 @@ void writeFactorySettings() {
  writeEEPROM(REAR_IO_ADDR, 10);
  writeEEPROM(FLASH_IO_ADDR, 0);      // Future extra flasher 
  writeEEPROM(LEDPIN_IO_ADDR, 13);    // HeartBeat LEDPIN, should be 13 
-
-
-
-
 
 
 
