@@ -98,6 +98,7 @@
 #include <SimpleTimer.h>
 #include <GCS_MAVLink.h>
 
+
 #ifdef membug
 #include <MemoryFree.h>
 #endif
@@ -106,30 +107,41 @@
 
 // Configurations
 #include "IOBoard.h"
+#include "IOEEPROM.h"
+
+#define CHKVER 43
+//#define DUMPEEPROM
 
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
 #define VER "v1.1"
 
-#define O1 8      // High power Output 1
-#define O2 9      // High power Output 2, PWM
-#define O3 10     // High power Output 3, PWM
-#define O4 4      // High power Output 4 
-#define O5 3      // High power Output 5, PWM
-#define O6 2      // High power Output 6
+// These are not in real use, just for reference
+//#define O1 8      // High power Output 1
+//#define O2 9      // High power Output 2, PWM
+//#define O3 10     // High power Output 3, PWM
+//#define O4 4      // High power Output 4 
+//#define O5 3      // High power Output 5, PWM
+//#define O6 2      // High power Output 6
 
-#define LEFT 8
-#define RIGHT 4
-#define FRONT 9
-#define REAR 10
+// Moved to dynamic variables
+//#define LEFT 8
+//#define RIGHT 4
+//#define FRONT 9
+//#define REAR 10
+byte LEFT;
+byte RIGHT;
+byte FRONT;
+byte REAR;
 
 //#define LED_LEFT 1
 //#define LED_RIGHT 2
 
 #define Circle_Dly 1000
 
-#define ledPin 13     // Heartbeat LED if any
+//#define ledPin 13     // Heartbeat LED if any
+byte ledPin;
 //#define ledPin 13     // Heartbeat LED if any
 #define LOOPTIME  50  // Main loop time for heartbeat
 //#define BAUD 57600    // Serial speed
@@ -196,7 +208,7 @@ FastSerialPort0(Serial);
 SimpleTimer  mavlinkTimer;
 
 #ifdef SERDB
-SoftwareSerial dbSerial(6,5,true);
+SoftwareSerial dbSerial(6,5);
 #endif
 
 /* **********************************************/
@@ -207,7 +219,7 @@ void setup()
 
   // Initialize Serial port, speed
   Serial.begin(TELEMETRY_SPEED);
-
+  
 #ifdef SERDB
   // Our software serial is connected on pins D6 and D5
 //  dbSerial.begin(57600);
@@ -215,6 +227,31 @@ void setup()
   DPL("Debug Serial ready... ");
   DPL("No input from this serialport.  ");
 #endif  
+
+  // Check that EEPROM has initial settings, if not write them
+  if(readEEPROM(CHK1) + readEEPROM(CHK2) != CHKVER) {
+    // Write factory settings on EEPROM
+    DPN("Writing EEPROM...");
+    writeFactorySettings();
+    DPL(" done.");
+  }  
+ 
+#ifdef DUMPEEPROM
+  // For debug needs, should never be activated on real-life
+  for(int edump = 0; edump <= 140; edump ++) {
+   DPN("EEPROM SLOT: ");
+   DPN(edump);
+   DPN(" VALUE: ");
+   DPL(readEEPROM(edump));     
+  }
+#endif
+    
+  // Rear most important values from EEPROM to their variables  
+  LEFT = readEEPROM(LEFT_IO_ADDR);
+  RIGHT = readEEPROM(RIGHT_IO_ADDR);
+  FRONT = readEEPROM(FRONT_IO_ADDR);
+  REAR = readEEPROM(REAR_IO_ADDR);
+  ledPin = readEEPROM(LEDPIN_IO_ADDR);
     
   // setup mavlink port
   mavlink_comm_0_port = &Serial;
