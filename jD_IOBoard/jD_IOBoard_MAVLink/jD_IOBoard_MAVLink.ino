@@ -110,12 +110,12 @@
 #include "IOEEPROM.h"
 
 #define CHKVER 43
-//#define DUMPEEPROM
+//#define DUMPEEPROM   // Should not be activated in repository code, only for debug
 
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
-#define VER "v1.1"
+#define VER "v1.2"
 
 // These are not in real use, just for reference
 //#define O1 8      // High power Output 1
@@ -125,29 +125,13 @@
 //#define O5 3      // High power Output 5, PWM
 //#define O6 2      // High power Output 6
 
-// Moved to dynamic variables
-//#define LEFT 8
-//#define RIGHT 4
-//#define FRONT 9
-//#define REAR 10
-byte LEFT;
-byte RIGHT;
-byte FRONT;
-byte REAR;
-
-//#define LED_LEFT 1
-//#define LED_RIGHT 2
-
 #define Circle_Dly 1000
 
-//#define ledPin 13     // Heartbeat LED if any
-byte ledPin;
 //#define ledPin 13     // Heartbeat LED if any
 #define LOOPTIME  50  // Main loop time for heartbeat
 //#define BAUD 57600    // Serial speed
 
 #define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
-
 
 #define DPL if(debug) dbSerial.println 
 #define DPN if(debug) dbSerial.print
@@ -186,10 +170,6 @@ int messageCounter;
 static bool mavlink_active;
 byte hbStatus;
 
-// General states
-byte isArmed = 0;
-byte isActive;
-
 byte voltAlarm;  // Alarm holder for internal voltage alarms, trigger 4 vols
 
 float boardVoltage;
@@ -198,7 +178,7 @@ int i2cErrorCount;
 byte ledState;
 byte baseState;  // Bit mask for different basic output LEDs like so called Left/Right 
 
-byte debug = 0;
+byte debug = 0;  // Shoud not be activated on repository code, only for debug
 
 byte ANA;
 
@@ -222,7 +202,6 @@ void setup()
   
 #ifdef SERDB
   // Our software serial is connected on pins D6 and D5
-//  dbSerial.begin(57600);
   dbSerial.begin(9600);
   DPL("Debug Serial ready... ");
   DPL("No input from this serialport.  ");
@@ -234,7 +213,7 @@ void setup()
     DPN("Writing EEPROM...");
     writeFactorySettings();
     DPL(" done.");
-  }  
+  }
  
 #ifdef DUMPEEPROM
   // For debug needs, should never be activated on real-life
@@ -365,9 +344,6 @@ void loop()
     updatePWM(); 
 
   } else AllOff();
-  
-  
-  
 
 }
 
