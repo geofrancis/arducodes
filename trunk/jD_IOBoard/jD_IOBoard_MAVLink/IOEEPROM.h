@@ -75,9 +75,10 @@
 #define LEDPIN_IO_ADDR 133
 
 
-// Internal check placeholders
+// Internal version, check placeholders
 #define CHK1 1000
 #define CHK2 1006
+#define VERS 1010
 
 #define EEPROM_MAX_ADDR 1024 // This is maximum for atmel 328 chip
 

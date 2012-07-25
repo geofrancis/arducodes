@@ -45,6 +45,8 @@ static int IOState[] = {0,0,0,0,0,0};
 
 static byte patt_pos;
 static byte patt;
+static byte pattByteA;
+static byte pattByteB;
 
 static int pwm1;  // value holders for pwm outputs (if any)
 static int pwm2;
@@ -65,6 +67,7 @@ static uint16_t iob_battery_remaining_A = 0;    // 0 to 100 <=> 0 to 1000
 
 static uint16_t iob_mode = 0;                   // Navigation mode from RC AC2 = CH5, APM = CH8
 static uint8_t  iob_nav_mode = 0;               // Navigation mode from RC AC2 = CH5, APM = CH8
+static uint16_t iob_old_mode = 0;
 
 static uint8_t  iob_satellites_visible = 0;     // number of satelites
 static uint8_t  iob_fix_type = 0;               // GPS lock 0-1=no fix, 2=2D, 3=3D
