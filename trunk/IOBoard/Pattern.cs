@@ -96,7 +96,7 @@ namespace IOBoard
                 }
                 else
                 {
-                    g.FillRectangle(Brushes.White, 0, 0, image.Width, image.Height);
+                    g.FillRectangle(Brushes.LightGray, 0, 0, image.Width, image.Height);
                 }
             }
 
@@ -110,13 +110,19 @@ namespace IOBoard
 
         private void CHK_demo_CheckedChanged(object sender, EventArgs e)
         {
+            Bitmap image = new Bitmap(pictureBox1.Size.Width, pictureBox1.Size.Height);
+
+            Graphics g = Graphics.FromImage(image);
+
             if (CHK_demo.Checked)
             {
                 timer1.Start();
             }
             else
             {
+                g.FillRectangle(Brushes.LightGray, 0, 0, image.Width, image.Height);
                 timer1.Stop();
+                
             }
         }
     }

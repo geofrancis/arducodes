@@ -28,7 +28,7 @@ namespace IOBoard
             InitializeComponent();
 
             // default patterns
-            patterns[0] = 0x00;
+            patterns[0] = 0xF000;
             patterns[1] = 0xf0f0;
             patterns[2] = 0xf804;
             patterns[3] = 0xcccc;
@@ -52,7 +52,7 @@ namespace IOBoard
             CMB_ComPort.Items.AddRange(GetPortNames());
         }
 
-        private void BUT_ReadOSD_Click(object sender, EventArgs e)
+        private void BUT_ReadIOB_Click(object sender, EventArgs e)
         {
             toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
             this.toolStripStatusLabel1.Text = "";
@@ -128,7 +128,7 @@ namespace IOBoard
             }
         }
 
-        private void BUT_WriteOSD_Click(object sender, EventArgs e)
+        private void BUT_WriteIOB_Click(object sender, EventArgs e)
         {
             toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
             this.toolStripStatusLabel1.Text = "";
@@ -223,7 +223,7 @@ namespace IOBoard
 
         private void helpToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("http://jdrones.com/jDoc");
+            System.Diagnostics.Process.Start("http://www.jdrones.com/jDoc/wiki:s_ioboardconfig");
         }
 
         private void saveIOBoardFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -502,6 +502,103 @@ namespace IOBoard
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        public string PublishVersion
+        {
+            get
+            {
+                if (System.Deployment.Application.ApplicationDeployment.IsNetworkDeployed)
+                {
+                    Version ver = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion;
+                    return string.Format("{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
+                }
+                else
+                    return "Not Published";
+            }
+        }
+
+        public string AssemblyVersion
+        {
+            get
+            {
+                return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            }
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            String strMajor = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.Major.ToString();
+            String strMajRev = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.MajorRevision.ToString();
+            String strMinor = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.Minor.ToString();
+            String strMinRev = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.MinorRevision.ToString();
+            LBL_Version.Text = strMajor + "." + strMajRev + "." + strMinor + "." + strMinRev;
+            //LBL_Version.Text = AssemblyVersion;
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pattern1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pattern2_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pattern3_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pattern4_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pattern5_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pattern6_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pattern7_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pattern8_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
         }
 
     }
