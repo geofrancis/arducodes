@@ -72,7 +72,7 @@
             this.flowLayoutPanel1.Controls.Add(this.checkBox14);
             this.flowLayoutPanel1.Controls.Add(this.checkBox15);
             this.flowLayoutPanel1.Controls.Add(this.checkBox16);
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 23);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 22);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
             this.flowLayoutPanel1.Size = new System.Drawing.Size(705, 27);
             this.flowLayoutPanel1.TabIndex = 4;
@@ -223,9 +223,10 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Location = new System.Drawing.Point(3, 3);
+            this.pictureBox1.BackColor = System.Drawing.Color.LightGray;
+            this.pictureBox1.Location = new System.Drawing.Point(835, 29);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(705, 14);
+            this.pictureBox1.Size = new System.Drawing.Size(60, 17);
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
             // 
@@ -238,7 +239,7 @@
             // 
             this.CMB_flightmode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.CMB_flightmode.FormattingEnabled = true;
-            this.CMB_flightmode.Location = new System.Drawing.Point(715, 3);
+            this.CMB_flightmode.Location = new System.Drawing.Point(714, 21);
             this.CMB_flightmode.Name = "CMB_flightmode";
             this.CMB_flightmode.Size = new System.Drawing.Size(97, 21);
             this.CMB_flightmode.TabIndex = 5;
@@ -246,11 +247,11 @@
             // CHK_demo
             // 
             this.CHK_demo.AutoSize = true;
-            this.CHK_demo.Location = new System.Drawing.Point(715, 31);
+            this.CHK_demo.Location = new System.Drawing.Point(840, 8);
             this.CHK_demo.Name = "CHK_demo";
-            this.CHK_demo.Size = new System.Drawing.Size(54, 17);
+            this.CHK_demo.Size = new System.Drawing.Size(47, 17);
             this.CHK_demo.TabIndex = 6;
-            this.CHK_demo.Text = "Demo";
+            this.CHK_demo.Text = "Test";
             this.CHK_demo.UseVisualStyleBackColor = true;
             this.CHK_demo.CheckedChanged += new System.EventHandler(this.CHK_demo_CheckedChanged);
             // 
@@ -258,12 +259,13 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.Control;
             this.Controls.Add(this.CHK_demo);
             this.Controls.Add(this.CMB_flightmode);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Controls.Add(this.pictureBox1);
             this.Name = "Pattern";
-            this.Size = new System.Drawing.Size(815, 51);
+            this.Size = new System.Drawing.Size(918, 51);
             this.flowLayoutPanel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
