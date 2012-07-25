@@ -117,7 +117,7 @@
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
-#define VER "v1.2"
+#define VER "v1.3"
 
 // These are not in real use, just for reference
 //#define O1 8      // High power Output 1
@@ -139,28 +139,6 @@
 #define DPN if(debug) dbSerial.print
 
 /* Patterns and other variables */
-
-//#ifndef NEWPAT
-// LED patterns
-/*static byte flight_patt[16][16] = {
-  { 0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0  },    // 0
-  { 1,1,1,1,0,0,0,0 ,1,1,1,1,0,0,0,0  },    // 1
-  { 1,1,1,1,1,0,0,0 ,0,0,0,0,0,1,0,0  },    // 2
-  { 1,1,0,0,1,1,0,0 ,1,1,0,0,1,1,0,0  },    // 3
-  { 1,0,0,0,1,0,0,0 ,1,0,0,0,1,0,0,0  },    // 4
-  { 1,0,1,0,1,0,1,0 ,1,0,1,0,0,0,0,0  },    // 5
-  { 1,0,1,0,1,0,1,0 ,1,0,1,0,1,0,1,0  },    // 6
-  { 1,0,1,0,0,0,0,0 ,1,0,1,0,0,0,0,0  },    // 7
-  { 1,1,0,0,0,0,0,0 ,1,1,0,0,0,0,0,0  },    // 8
-  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 9
-  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 10
-  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 11
-  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 12
-  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 13
-  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 14
-  { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  }};   // 15
-//#endif
-*/
 static byte LeRiPatt = NOMAVLINK; // default pattern is full ON
 
 static long p_preMillis;
@@ -368,10 +346,7 @@ void loop()
 void OnMavlinkTimer()
 {
   if(millis() < (lastMAVBeat + 3000)) {
-   
-    // Check on which flight mode we are 
-//    CheckFlightMode();
-        
+           
     // General condition checks starts from here
     //
       
