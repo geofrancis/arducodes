@@ -109,8 +109,10 @@
 #include "IOBoard.h"
 #include "IOEEPROM.h"
 
-#define CHKVER 43
-//#define DUMPEEPROM   // Should not be activated in repository code, only for debug
+#define CHKVER 42
+//#define DUMPEEPROM            // Should not be activated in repository code, only for debug
+//#define DUMPEEPROMTELEMETRY   // Should not be activated in repository code, only for debug
+#define NEWPAT
 
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
@@ -138,8 +140,9 @@
 
 /* Patterns and other variables */
 
+//#ifndef NEWPAT
 // LED patterns
-static byte flight_patt[16][16] = {
+/*static byte flight_patt[16][16] = {
   { 0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0  },    // 0
   { 1,1,1,1,0,0,0,0 ,1,1,1,1,0,0,0,0  },    // 1
   { 1,1,1,1,1,0,0,0 ,0,0,0,0,0,1,0,0  },    // 2
@@ -156,12 +159,13 @@ static byte flight_patt[16][16] = {
   { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 13
   { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  },    // 14
   { 1,0,0,0,0,0,0,0 ,1,0,0,0,0,0,0,0  }};   // 15
-
+//#endif
+*/
 static byte LeRiPatt = NOMAVLINK; // default pattern is full ON
 
 static long p_preMillis;
 static long p_curMillis;
-static int p_delMillis = 50;
+static int p_delMillis = LOOPTIME;
 
 static int curPwm;
 static int prePwm;
@@ -170,7 +174,7 @@ int messageCounter;
 static bool mavlink_active;
 byte hbStatus;
 
-byte voltAlarm;  // Alarm holder for internal voltage alarms, trigger 4 vols
+byte voltAlarm;  // Alarm holder for internal voltage alarms, trigger 4 volts
 
 float boardVoltage;
 int i2cErrorCount;
@@ -222,6 +226,16 @@ void setup()
    DPN(edump);
    DPN(" VALUE: ");
    DPL(readEEPROM(edump));     
+  }
+#endif
+
+#ifdef DUMPEEPROMTELEMETRY
+  // For debug needs, should never be activated on real-life
+  for(int edump = 0; edump <= 140; edump ++) {
+   Serial.print("EEPROM SLOT: ");
+   Serial.print(edump);
+   Serial.print(" VALUE: ");
+   Serial.println(readEEPROM(edump), BIN);     
   }
 #endif
     
@@ -353,10 +367,10 @@ void loop()
 // Function that is called every 120ms
 void OnMavlinkTimer()
 {
-  if(millis() < (lastMAVBeat + 2000)) {
+  if(millis() < (lastMAVBeat + 3000)) {
    
     // Check on which flight mode we are 
-    CheckFlightMode();
+//    CheckFlightMode();
         
     // General condition checks starts from here
     //

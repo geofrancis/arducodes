@@ -46,7 +46,7 @@ void writeEP2(int address, byte val1, byte val2) {
 void writeFactorySettings() {
  // Writing all default parameters to EEPROM
 
- // Default patterns 1-16
+ // Default patterns 1-16, BIN 
  writeEP2(pat01_ADDR, 0b11000000, 0b00000000);
  writeEP2(pat02_ADDR, 0b11110000, 0b11110000);
  writeEP2(pat03_ADDR, 0b11111000, 0b00000100);
@@ -65,7 +65,7 @@ void writeFactorySettings() {
  writeEP2(pat16_ADDR, 0b10000000, 0b10000000);
 
  // Default patterns 17-32
- // Reserved, write full NULL
+ // Reserved, write full NULL, BIN 
  writeEP2(pat17_ADDR, 0b00000000, 0b00000000);
  writeEP2(pat18_ADDR, 0b00000000, 0b00000000);
  writeEP2(pat19_ADDR, 0b00000000, 0b00000000);
@@ -83,25 +83,26 @@ void writeFactorySettings() {
  writeEP2(pat31_ADDR, 0b00000000, 0b00000000);
  writeEP2(pat32_ADDR, 0b00000000, 0b00000000);
  
- // Default pattern - flight mode binds
- writeEP2(mbind01_ADDR, 0x00, 0x00);
- writeEP2(mbind02_ADDR, 0x01, 0x01);
- writeEP2(mbind03_ADDR, 0x02, 0x02);
- writeEP2(mbind04_ADDR, 0x03, 0x03);
- writeEP2(mbind05_ADDR, 0x04, 0x04);
- writeEP2(mbind06_ADDR, 0x05, 0x05);
- writeEP2(mbind07_ADDR, 0x06, 0x06);
- writeEP2(mbind08_ADDR, 0x07, 0x07);
- writeEP2(mbind09_ADDR, 0x08, 0x08);
- writeEP2(mbind10_ADDR, 0x09, 0x09);
- writeEP2(mbind11_ADDR, 0x0A, 0x0A);
- writeEP2(mbind12_ADDR, 0x0B, 0x0B);
- writeEP2(mbind13_ADDR, 0x0C, 0x0C);
- writeEP2(mbind14_ADDR, 0x0D, 0x0D);
- writeEP2(mbind15_ADDR, 0x0E, 0x0E);
+ // Default pattern - flight mode binds, HEX
+ writeEP2(mbind01_ADDR, 0x00, 0x01);
+ writeEP2(mbind02_ADDR, 0x01, 0x02);
+ writeEP2(mbind03_ADDR, 0x02, 0x03);
+ writeEP2(mbind04_ADDR, 0x03, 0x04);
+ writeEP2(mbind05_ADDR, 0x04, 0x05);
+ writeEP2(mbind06_ADDR, 0x05, 0x06);
+ writeEP2(mbind07_ADDR, 0x06, 0x07);
+ writeEP2(mbind08_ADDR, 0x07, 0x08);
+ writeEP2(mbind09_ADDR, 0x08, 0x09);
+ writeEP2(mbind10_ADDR, 0x09, 0x0A);
+ writeEP2(mbind11_ADDR, 0x0A, 0x0B);
+ writeEP2(mbind12_ADDR, 0x0B, 0x0C);
+ writeEP2(mbind13_ADDR, 0x0C, 0x0D);
+ writeEP2(mbind14_ADDR, 0x0D, 0x0E);
+ writeEP2(mbind15_ADDR, 0x0E, 0x0F);
+
  writeEP2(mbind16_ADDR, 0x0F, 0x0F);
 
- // Default locations of different output LEDs 
+ // Default locations of different output LEDs, DEC
  writeEEPROM(LEFT_IO_ADDR, 8);
  writeEEPROM(RIGHT_IO_ADDR, 4);
  writeEEPROM(FRONT_IO_ADDR, 9);

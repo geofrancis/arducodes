@@ -82,12 +82,17 @@ void read_mavlink(){
             apm_mav_type      = mavlink_msg_heartbeat_get_type(&msg);
 
             iob_mode = mavlink_msg_heartbeat_get_custom_mode(&msg);
+            if(iob_mode != iob_old_mode) {
+              iob_old_mode = iob_mode;
+              CheckFlightMode();
+            }                
             iob_nav_mode = 0;
 
 //            if((mavlink_msg_heartbeat_get_base_mode(&msg) & MOTORS_ARMED) == MOTORS_ARMED)
-            if(isBit(mavlink_msg_heartbeat_get_base_mode(&msg),MOTORS_ARMED))
-              isArmed = 1;
-               else 
+            if(isBit(mavlink_msg_heartbeat_get_base_mode(&msg),MOTORS_ARMED)) {
+              CheckFlightMode();
+              isArmed = 1;  
+            } else 
               isArmed = 0;
 
             lastMAVBeat = millis();

@@ -78,13 +78,36 @@ void CheckFlightMode() {
     if(iob_mode == 15) flMode = GUID;  // GUIDED
     if(iob_mode == 10 ) flMode = AUTO; // AUTO
     if(iob_mode == 1) flMode = CIRC;   // CIRCLE
-  }  
+  }
+#ifndef NEWPAT  
   patt = flMode + 1;
+#else 
+  tempvar = readEEPROM(mbind01_ADDR  + (flMode * 2) + 1);
+  tempvar--; // - 1 to match correct pattern. As banks starts from 0 and modes from 1.
+  pattByteA = readEEPROM(pat01_ADDR + (tempvar * 2));
+  pattByteB = readEEPROM(pat01_ADDR + (tempvar * 2) + 1);
+//  DPL(pattByteA, BIN);
+//  DPL(pattByteB, BIN);
+#endif  
 }
 
 // Update main pattern
 void RunPattern() {
+#ifndef NEWPAT  
    digitalWrite(REAR, flight_patt[patt][patt_pos]);
+#else
+      if(patt_pos >= 0 && patt_pos <= 7) {
+        if(getLBit(pattByteA, patt_pos)) 
+          digitalWrite(REAR, EN);
+        else
+          digitalWrite(REAR, DI);
+      } else {
+        if(getLBit(pattByteB, patt_pos - 8)) 
+          digitalWrite(REAR, EN);
+        else
+          digitalWrite(REAR, DI);
+      }
+#endif
 }
 
 // Clear main pattern
@@ -134,5 +157,41 @@ void updatePWM() {
     }
 }
 
-
+boolean getLBit(byte Reg, byte whichBit) {
+  boolean State;
+  switch(whichBit) {
+    case 0:
+     State = Reg & (1 << 7);
+     return State;
+     break;
+    case 1:
+     State = Reg & (1 << 6);
+     return State;
+     break;
+    case 2:
+     State = Reg & (1 << 5);
+     return State;
+     break;
+    case 3:
+     State = Reg & (1 << 4);
+     return State;
+     break;
+    case 4:
+     State = Reg & (1 << 3);
+     return State;
+     break;
+    case 5:
+     State = Reg & (1 << 2);
+     return State;
+     break;
+    case 6:
+     State = Reg & (1 << 1);
+     return State;
+     break;
+    case 7:
+     State = Reg & (1 << 0);
+     return State;
+     break;
+  }
+}
 
