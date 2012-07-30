@@ -266,6 +266,7 @@
             this.Controls.Add(this.pictureBox1);
             this.Name = "Pattern";
             this.Size = new System.Drawing.Size(918, 51);
+            this.Load += new System.EventHandler(this.Pattern_Load);
             this.flowLayoutPanel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
