@@ -134,7 +134,7 @@ namespace IOBoard
             toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
             this.toolStripStatusLabel1.Text = "";
 
-            foreach (Control ctl in this.Controls) 
+            foreach (Control ctl in tabPage2.Controls) 
             {
                 if (ctl.GetType() == typeof(Pattern))
                 {
