@@ -100,7 +100,7 @@ namespace IOBoard
             {
                 for (int pos = 0; pos < 16 ;pos++) {
                     patterns[pos] = (ushort)((ushort)(eeprom[pos*2] << 8) + eeprom[pos*2 + 1]);
-
+                    
                     Control[] ctls = this.Controls.Find("pattern" + (pos+1), true);
                     if (ctls.Length > 0)
                     {
@@ -122,6 +122,7 @@ namespace IOBoard
                 while (a % 15 != 0 || a == 0)
                 {
                     Console.Write("{0,02:X}", eeprom[a]);
+
                     a++;
                 }
                 Console.WriteLine();
@@ -597,6 +598,29 @@ namespace IOBoard
         }
 
         private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            MessageBox.Show(string.Format("Jani Hirvinen            - General functionalities and UI{0}Michael Oborne        - Arduino libraries and original code{0}{0}Checkout more from http://www.jdrones.com/jDoc", Environment.NewLine), "Program Credits", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //            box.ShowDialog();
+
+        }
+
+        private void label16_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabPage2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pattern3_Load_1(object sender, EventArgs e)
         {
 
         }

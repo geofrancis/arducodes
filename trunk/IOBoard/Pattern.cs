@@ -125,5 +125,10 @@ namespace IOBoard
                 
             }
         }
+
+        private void Pattern_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
