@@ -157,15 +157,10 @@ void read_mavlink(){
 #else
         case MAVLINK_MSG_ID_GPS_RAW_INT:
           { 
-            
-            
-            
             iob_lat = mavlink_msg_gps_raw_int_get_lat(&msg) / 10000000.0f;
             iob_lon = mavlink_msg_gps_raw_int_get_lon(&msg) / 10000000.0f;
-            
-            iob_lat = 13.123456;
-            iob_lon = 100.987654;
-            
+//            iob_lat = 13.123456;
+//            iob_lon = 100.987654;
             iob_fix_type = mavlink_msg_gps_raw_int_get_fix_type(&msg);
             iob_satellites_visible = mavlink_msg_gps_raw_int_get_satellites_visible(&msg);
           }
@@ -182,12 +177,16 @@ void read_mavlink(){
             iob_alt = mavlink_msg_vfr_hud_get_alt(&msg);
           }
           break;
-
+          
+        case MAVLINK_MSG_ID_SCALED_PRESSURE:
+          {
+            iob_temperature = mavlink_msg_scaled_pressure_get_temperature(&msg) / 100;  // scaling 0.01
+          }
+          break;
 
         case MAVLINK_MSG_ID_ATTITUDE:
           {
 //          DPL("MAV ID_ATTITUDE");
-
             iob_pitch = ToDeg(mavlink_msg_attitude_get_pitch(&msg));
             iob_roll = ToDeg(mavlink_msg_attitude_get_roll(&msg));
             iob_yaw = ToDeg(mavlink_msg_attitude_get_yaw(&msg));

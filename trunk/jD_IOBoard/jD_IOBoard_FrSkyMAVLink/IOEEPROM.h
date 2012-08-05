@@ -74,6 +74,7 @@
 #define FLASH_IO_ADDR 132
 #define LEDPIN_IO_ADDR 133
 
+#define ISFRSKY 140
 
 // Internal version, check placeholders
 #define CHK1 1000

@@ -61,7 +61,7 @@ static long p_hbMillis;                         // HeartBeat counter
 static long c_hbMillis;
 static long d_hbMillis = 1000;
 
-
+static int8_t    iob_temperature;
 static float    iob_vbat_A = 0;                 // Battery A voltage in milivolt
 static uint16_t iob_battery_remaining_A = 0;    // 0 to 100 <=> 0 to 1000
 

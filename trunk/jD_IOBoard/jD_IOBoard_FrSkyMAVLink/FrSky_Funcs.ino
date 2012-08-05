@@ -114,8 +114,10 @@ byte addPayload(byte DataID) {
       break;
     case 0x02:  // Temperature 1
       outBuff[payloadLen + 0] = 0x02;
-      outBuff[payloadLen + 1] = 0x01;
+      outBuff[payloadLen + 1] = iob_temperature;
       outBuff[payloadLen + 2] = 0x00;
+      
+//      ShowPayload();
       addedLen = 3;      
       break;
     case 0x03:  // RPM
@@ -179,8 +181,8 @@ byte addPayload(byte DataID) {
       break;
     case 0x12+8:  // Longitude, after "."
       outBuff[payloadLen + 0] = 0x12+8;
-      outBuff[payloadLen + 1] = FixInt(long((iob_lat - int(iob_lat)) * 10000), 1);
-      outBuff[payloadLen + 2] = FixInt(long((iob_lat - int(iob_lat)) * 10000), 2);
+      outBuff[payloadLen + 1] = FixInt(long((iob_lat - int(iob_lat)) * 10000), 1);  // Only allow .0000 4 digits
+      outBuff[payloadLen + 2] = FixInt(long((iob_lat - int(iob_lat)) * 10000), 2);  // Only allow .0000 4 digits after .
       addedLen = 3;      
       break;
     case 0x13:  // Latitude, before "."
@@ -192,13 +194,7 @@ byte addPayload(byte DataID) {
     case 0x13+8:  // Latitude, after "."
       outBuff[payloadLen + 0] = 0x13+8;
       outBuff[payloadLen + 1] = FixInt(long((iob_lon - int(iob_lon)) * 10000), 1);
-      outBuff[payloadLen + 2] = FixInt(long((iob_lon - int(iob_lon)) * 10000), 2);
-      
-      Serial.print("d: ");
-      Serial.print(outBuff[payloadLen + 1], DEC);
-      Serial.print(", ");
-      Serial.print(outBuff[payloadLen + 2], DEC);
-      Serial.println();
+      outBuff[payloadLen + 2] = FixInt(long((iob_lon - int(iob_lon)) * 10000), 2);      
       addedLen = 3;      
       break;
 
@@ -326,6 +322,14 @@ long FixInt(long val, byte mp) {
  if(mp == 2) return long(val / 256);
  if (val >= 256 && mp == 1) 
    return val % 256;  
+}
+
+void ShowPayload() {
+      Serial.print("PL: ");
+      Serial.print(outBuff[payloadLen + 1], DEC);
+      Serial.print(", ");
+      Serial.print(outBuff[payloadLen + 2], DEC);
+      Serial.println(); 
 }
 
 

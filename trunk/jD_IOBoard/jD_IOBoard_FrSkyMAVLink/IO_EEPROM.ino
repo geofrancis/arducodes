@@ -120,6 +120,7 @@ void writeFactorySettings() {
 
 
 
+ writeEEPROM(ISFRSKY, 1);           // Activate FrSky protocol output from D5, D6
 
  // Write details for versioncheck to EEPROM
  writeEEPROM(CHK1, 20);
