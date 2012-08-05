@@ -179,8 +179,8 @@ byte addPayload(byte DataID) {
       break;
     case 0x12+8:  // Longitude, after "."
       outBuff[payloadLen + 0] = 0x12+8;
-      outBuff[payloadLen + 1] = FixInt(long((iob_lat - int(iob_lat)) * 100000), 1);
-      outBuff[payloadLen + 2] = FixInt(long((iob_lat - int(iob_lat)) * 100000), 2);
+      outBuff[payloadLen + 1] = FixInt(long((iob_lat - int(iob_lat)) * 10000), 1);
+      outBuff[payloadLen + 2] = FixInt(long((iob_lat - int(iob_lat)) * 10000), 2);
       addedLen = 3;      
       break;
     case 0x13:  // Latitude, before "."
@@ -191,8 +191,14 @@ byte addPayload(byte DataID) {
       break;
     case 0x13+8:  // Latitude, after "."
       outBuff[payloadLen + 0] = 0x13+8;
-      outBuff[payloadLen + 1] = FixInt(long((iob_lon - int(iob_lon)) * 100000), 1);
-      outBuff[payloadLen + 2] = FixInt(long((iob_lon - int(iob_lon)) * 100000), 2);
+      outBuff[payloadLen + 1] = FixInt(long((iob_lon - int(iob_lon)) * 10000), 1);
+      outBuff[payloadLen + 2] = FixInt(long((iob_lon - int(iob_lon)) * 10000), 2);
+      
+      Serial.print("d: ");
+      Serial.print(outBuff[payloadLen + 1], DEC);
+      Serial.print(", ");
+      Serial.print(outBuff[payloadLen + 2], DEC);
+      Serial.println();
       addedLen = 3;      
       break;
 
@@ -316,8 +322,8 @@ byte sendPayload(byte len) {
 }
 
 // FrSky int handling
-byte FixInt(int val, byte mp) {  
- if(mp == 2) return int(val / 256);
+long FixInt(long val, byte mp) {  
+ if(mp == 2) return long(val / 256);
  if (val >= 256 && mp == 1) 
    return val % 256;  
 }

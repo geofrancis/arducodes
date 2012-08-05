@@ -163,8 +163,8 @@ void read_mavlink(){
             iob_lat = mavlink_msg_gps_raw_int_get_lat(&msg) / 10000000.0f;
             iob_lon = mavlink_msg_gps_raw_int_get_lon(&msg) / 10000000.0f;
             
-            iob_lat = 13.12345;
-            iob_lon = 100.54321;
+            iob_lat = 13.123456;
+            iob_lon = 100.987654;
             
             iob_fix_type = mavlink_msg_gps_raw_int_get_fix_type(&msg);
             iob_satellites_visible = mavlink_msg_gps_raw_int_get_satellites_visible(&msg);
