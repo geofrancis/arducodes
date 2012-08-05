@@ -122,6 +122,6 @@ void writeFactorySettings() {
 
 
  // Write details for versioncheck to EEPROM
- writeEEPROM(CHK1, 21);
- writeEEPROM(CHK2, 21);
+ writeEEPROM(CHK1, 20);
+ writeEEPROM(CHK2, 20);
 }

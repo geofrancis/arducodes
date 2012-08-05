@@ -69,6 +69,8 @@ static uint16_t iob_mode = 0;                   // Navigation mode from RC AC2 =
 static uint8_t  iob_nav_mode = 0;               // Navigation mode from RC AC2 = CH5, APM = CH8
 static uint16_t iob_old_mode = 0;
 
+static float    iob_lat = 0;                    // latidude
+static float    iob_lon = 0;                    // longitude
 static uint8_t  iob_satellites_visible = 0;     // number of satelites
 static uint8_t  iob_fix_type = 0;               // GPS lock 0-1=no fix, 2=2D, 3=3D
 
@@ -77,6 +79,11 @@ static uint8_t  iob_got_home = 0;               // tels if got home position or 
 static int8_t      iob_pitch = 0;                  // pitch form DCM
 static int8_t      iob_roll = 0;                   // roll form DCM
 static int8_t      iob_yaw = 0;                    // relative heading form DCM
+
+static float    iob_heading = 0;                // ground course heading from GPS
+static float    iob_alt = 0;                    // altitude
+static float    iob_groundspeed = 0;            // ground speed
+static uint16_t iob_throttle = 0;               // throtle
 
 //MAVLink session control
 static boolean  mavbeat = 0;
@@ -126,4 +133,20 @@ static byte ri_patt[8][16] = {
   { 0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0  }};   // 7
 
 
+// FrSky modules addon
+static long f_curMillis;
+static long f_preMillis;
+static int f_delMillis = 200;
 
+unsigned char outBuff[48];     // Array for payloads
+unsigned char outBuffFixed[48];     // Array for payloads
+
+byte msCounter;
+boolean packetOpen;
+byte payloadLen;
+
+byte hour;
+byte minute;
+byte second;
+
+// FrSky module addon - END
