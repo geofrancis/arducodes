@@ -156,12 +156,33 @@ void read_mavlink(){
           break;
 #else
         case MAVLINK_MSG_ID_GPS_RAW_INT:
-          {
+          { 
+            
+            
+            
+            iob_lat = mavlink_msg_gps_raw_int_get_lat(&msg) / 10000000.0f;
+            iob_lon = mavlink_msg_gps_raw_int_get_lon(&msg) / 10000000.0f;
+            
+            iob_lat = 13.12345;
+            iob_lon = 100.54321;
+            
             iob_fix_type = mavlink_msg_gps_raw_int_get_fix_type(&msg);
             iob_satellites_visible = mavlink_msg_gps_raw_int_get_satellites_visible(&msg);
           }
           break;
 #endif          
+
+        case MAVLINK_MSG_ID_VFR_HUD:
+          {
+            iob_groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);
+            iob_heading = mavlink_msg_vfr_hud_get_heading(&msg);// * 3.60f;//0-100% of 360
+            iob_throttle = mavlink_msg_vfr_hud_get_throttle(&msg);
+            if(iob_throttle > 100 && iob_throttle < 150) iob_throttle = 100; //Temporary fix for ArduPlane 2.28
+            if(iob_throttle < 0 || iob_throttle > 150) iob_throttle = 0; //Temporary fix for ArduPlane 2.28
+            iob_alt = mavlink_msg_vfr_hud_get_alt(&msg);
+          }
+          break;
+
 
         case MAVLINK_MSG_ID_ATTITUDE:
           {

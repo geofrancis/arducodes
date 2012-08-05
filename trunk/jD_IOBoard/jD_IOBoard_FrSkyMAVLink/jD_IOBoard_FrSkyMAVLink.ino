@@ -70,8 +70,10 @@
 
 #define MAVLINK10     // Are we listening MAVLink 1.0 or 0.9   (0.9 is obsolete now)
 #define HEARTBEAT     // HeartBeat signal
-#define SERDB         // Output debug information to SoftwareSerial 
+//#define SERDB         // Output debug information to SoftwareSerial 
+#define FRSER          // FrSky serial output, cannot be run same time with SERDB
 #define ONOFFSW       // Do we have OnOff switch connected in pins 
+#define membug
 
 /* **********************************************/
 /* ***************** INCLUDES *******************/
@@ -117,7 +119,7 @@
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
-#define VER "v1.4"
+#define VER "v2.0"
 
 // These are not in real use, just for reference
 //#define O1 8      // High power Output 1
@@ -135,8 +137,15 @@
 
 #define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
 
+#ifdef SERDB
 #define DPL if(debug) dbSerial.println 
 #define DPN if(debug) dbSerial.print
+#endif
+#ifdef FRSER
+#define DPL if(debug) frSerial.println
+#define DPN if(debug) frSerial.print
+#endif
+
 
 /* Patterns and other variables */
 static byte LeRiPatt = NOMAVLINK; // default pattern is full ON
@@ -161,6 +170,7 @@ byte ledState;
 byte baseState;  // Bit mask for different basic output LEDs like so called Left/Right 
 
 byte debug = 0;  // Shoud not be activated on repository code, only for debug
+byte deb2 = 1;
 
 byte ANA;
 
@@ -168,6 +178,10 @@ byte ANA;
 FastSerialPort0(Serial);
 
 SimpleTimer  mavlinkTimer;
+
+#ifdef FRSER
+SoftwareSerial frSerial(6,5,true);
+#endif
 
 #ifdef SERDB
 SoftwareSerial dbSerial(6,5);
@@ -188,7 +202,13 @@ void setup()
   DPL("Debug Serial ready... ");
   DPL("No input from this serialport.  ");
 #endif  
-  if(digitalRead(11) == 0) {
+
+#ifdef FRSER
+  frSerial.begin(9600);
+#endif
+
+
+  if(digitalRead(11) == 0) {    
     DPL("Force erase pin LOW, Eracing EEPROM");
     DPN("Writing EEPROM...");
     writeFactorySettings();
@@ -271,6 +291,7 @@ void setup()
 
   // Jani's debug stuff  
 #ifdef membug
+  Serial.print("Freemem: ");
   Serial.println(freeMem());
   DPL(freeMem());
 #endif
@@ -356,6 +377,7 @@ void loop()
     mavlinkTimer.Run();
 
     updatePWM(); 
+    update_FrSky();
 
   } else AllOff();
 
