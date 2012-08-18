@@ -266,9 +266,9 @@
             this.LBL_Version.AutoSize = true;
             this.LBL_Version.Location = new System.Drawing.Point(181, 524);
             this.LBL_Version.Name = "LBL_Version";
-            this.LBL_Version.Size = new System.Drawing.Size(40, 13);
+            this.LBL_Version.Size = new System.Drawing.Size(46, 13);
             this.LBL_Version.TabIndex = 34;
-            this.LBL_Version.Text = "1.0.0.7";
+            this.LBL_Version.Text = "1.0.0.12";
             // 
             // tabControl1
             // 

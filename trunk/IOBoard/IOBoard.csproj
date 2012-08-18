@@ -30,7 +30,7 @@
     <TargetCulture>en-US</TargetCulture>
     <ProductName>jD-IOBoard Configurator</ProductName>
     <PublisherName>jDrones.com</PublisherName>
-    <ApplicationRevision>12</ApplicationRevision>
+    <ApplicationRevision>13</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
