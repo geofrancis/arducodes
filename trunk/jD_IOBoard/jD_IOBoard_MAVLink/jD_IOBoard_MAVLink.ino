@@ -117,7 +117,7 @@
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
-#define VER "v1.4"
+#define VER "v1.5"
 
 // These are not in real use, just for reference
 //#define O1 8      // High power Output 1
@@ -188,12 +188,13 @@ void setup()
   DPL("Debug Serial ready... ");
   DPL("No input from this serialport.  ");
 #endif  
-  if(digitalRead(11) == 0) {
-    DPL("Force erase pin LOW, Eracing EEPROM");
-    DPN("Writing EEPROM...");
-    writeFactorySettings();
-    DPL(" done.");
-  }
+
+//  if(digitalRead(11) == 0) {
+//    DPL("Force erase pin LOW, Eracing EEPROM");
+//    DPN("Writing EEPROM...");
+//    writeFactorySettings();
+//    DPL(" done.");
+//  }
   
 
   // Check that EEPROM has initial settings, if not write them
