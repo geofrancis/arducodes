@@ -46,7 +46,7 @@ void HeartBeat() {
         ledState = LOW;
     // set the LED with the ledState of the variable:
     digitalWrite(ledPin, ledState); 
-    messageCounter++;   
+//    messageCounter++;   
   }
 }
 #endif 
@@ -211,5 +211,27 @@ boolean getLBit(byte Reg, byte whichBit) {
      return State;
      break;
   }
+}
+
+// Flip bit from LogBit
+void FLog(byte BitID) {
+  DPN("Swaping bit:");
+  DPL(BitID);
+  LogBit ^= (1 << BitID);
+}
+
+// Query bit from LogBit
+byte QLog(byte BitID) {
+ return LogBit & (1 << BitID); 
+}
+
+// Set bit from LogBit
+void SLog(byte BitID) {
+ LogBit |= (1 << BitID);
+}
+
+// Clear bit from LogBit
+void CLog(byte BitID) {
+ LogBit &= ~(1 << BitID);
 }
 

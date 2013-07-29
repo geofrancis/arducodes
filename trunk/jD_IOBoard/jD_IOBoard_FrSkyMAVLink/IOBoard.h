@@ -35,6 +35,19 @@
 #define NOMAVLINK 6
 //#define NOTHINGYET 7
 
+//Battery
+#define MAXCELL 6
+
+// LogBITs
+#define LB0  0   // All basic logging
+#define LB1  1   
+#define LB2  2
+#define LB3  3
+#define LB4  4   // FrSky packet creation dump
+#define LB5  5   // LED/Output statuses
+#define LB6  6
+#define LB7  7   // Dump EEPROM, Settings
+
 
 ///////////////////////////
 // Global variables
@@ -69,6 +82,10 @@ static uint16_t iob_mode = 0;                   // Navigation mode from RC AC2 =
 static uint8_t  iob_nav_mode = 0;               // Navigation mode from RC AC2 = CH5, APM = CH8
 static uint16_t iob_old_mode = 0;
 
+static int cell_numb = 3;
+static int cell_count = 0;
+static int cellV[MAXCELL]; // Volts for each cell
+
 static float    iob_lat = 0;                    // latidude
 static float    iob_lon = 0;                    // longitude
 static uint8_t  iob_satellites_visible = 0;     // number of satelites
@@ -82,6 +99,7 @@ static int8_t      iob_yaw = 0;                    // relative heading form DCM
 
 static float    iob_heading = 0;                // ground course heading from GPS
 static float    iob_alt = 0;                    // altitude
+static float    iob_gps_alt = 0;                    // altitude
 static float    iob_groundspeed = 0;            // ground speed
 static uint16_t iob_throttle = 0;               // throtle
 
@@ -94,8 +112,23 @@ static uint8_t  apm_mav_system;
 static uint8_t  apm_mav_component;
 static boolean  enable_mav_request = 0;
 
+byte iob_lat_dir;
+byte iob_lon_dir;
+
+int iob_ampbatt_A;
+
+static float deg_dat;
+static float dec_deg;
+static float min_dat;
+static float dec_min;
+static float sec_dat;
+
+//byte cell_count;
+//byte cell_numb;
 
 int tempvar;      // Temporary variable used on many places around the IOBoard
+
+byte LogBit = 0B00000000;
 
 // General states
 byte flMode;      // Our current flight mode as defined
@@ -146,7 +179,7 @@ boolean packetOpen;
 byte payloadLen;
 
 byte hour;
-byte minute;
+byte minutes;
 byte second;
 
 // FrSky module addon - END

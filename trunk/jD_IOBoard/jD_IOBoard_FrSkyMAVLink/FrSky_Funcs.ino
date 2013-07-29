@@ -44,12 +44,17 @@ void update_FrSky() {
     payloadLen += addPayload(0x25); // accel-y
     payloadLen += addPayload(0x26); // accel-z
 
-    payloadLen += addPayload(0x10); // alt(vario)
+    payloadLen += addPayload(0x10); // alt(vario). before "."
+    payloadLen += addPayload(0x21); // alt, after "."
     
-    payloadLen += addPayload(0x02); // temp1
-    payloadLen += addPayload(0x05); // temp2
+    payloadLen += addPayload(0x02); // Temperature 1
+    payloadLen += addPayload(0x05); // Temperature 2
     
-//    payloadLen += addPayload(0x06); // battery data, injection not ready
+    payloadLen += addPayload(0x06); // Battery data, 
+    payloadLen += addPayload(0x28); // Ampere
+    
+    payloadLen += addPayload(0x3A); // Voltage , before "."
+    payloadLen += addPayload(0x3B); // Voltage , after "."
 
     payloadLen += addPayload(0x03); // rpm
     
@@ -66,16 +71,25 @@ void update_FrSky() {
 
       payloadLen += addPayload(0x14);   // Course, degree
       payloadLen += addPayload(0x1c);   // Course, after "."
-      payloadLen += addPayload(0x12);   // Longitude dddmmm
-      payloadLen += addPayload(0x1a);   // Longitude .mmmm (after ".")
-      payloadLen += addPayload(0x13);   // Latitude dddmmm 
-      payloadLen += addPayload(0x1b);   // Latitude .mmmm (after ".")
-      payloadLen += addPayload(0x22);   // E/W
+    
+      payloadLen += addPayload(0x13);   // Longitude dddmmm 
+      payloadLen += addPayload(0x1b);   // Longitude .mmmm (after ".")
+      payloadLen += addPayload(0x23);   // E/W
+
+      payloadLen += addPayload(0x12);   // Latitude dddmmm
+      payloadLen += addPayload(0x1a);   // Latitude .mmmm (after ".")
+      payloadLen += addPayload(0x22);   // N/S
+    
       payloadLen += addPayload(0x11);   // GPS Speed Knots
       payloadLen += addPayload(0x19);   // GPS Speed after "."
-      payloadLen += addPayload(0x23);   // N/S
+
+      payloadLen += addPayload(0x01);   // GPS Altitude
+      payloadLen += addPayload(0x09);   // GPS Altitude "."
+    
       payloadLen += addPayload(0x04);   // Fuel level % 0,25,50,75,100
-      payloadLen += addPayload(0x18);   // Second
+      
+      payloadLen += addPayload(0x18);   // secs
+
 
       packetOpen = FALSE;
       payloadLen = sendPayload(payloadLen);
@@ -108,10 +122,20 @@ byte addPayload(byte DataID) {
   switch(DataID) {
     case 0x01:  // GPS Altitude
       outBuff[payloadLen + 0] = 0x01;
-      outBuff[payloadLen + 1] = 0x00;
-      outBuff[payloadLen + 2] = 0x00;
+      outBuff[payloadLen + 1] = FixInt(int(iob_gps_alt), 1);
+      outBuff[payloadLen + 2] = FixInt(int(iob_gps_alt), 2);
       addedLen = 3;      
       break;
+    case 0x01+8:  // GPS Altitude
+      {
+      float tmp = (iob_gps_alt - int(iob_gps_alt)) * 10000.0f;
+      outBuff[payloadLen + 0] = 0x01+8;
+      outBuff[payloadLen + 1] = FixInt(int(tmp), 1);
+      outBuff[payloadLen + 2] = FixInt(int(tmp), 2);
+      addedLen = 3;      
+      }
+      break;
+      
     case 0x02:  // Temperature 1
       outBuff[payloadLen + 0] = 0x02;
       outBuff[payloadLen + 1] = iob_temperature;
@@ -120,25 +144,42 @@ byte addPayload(byte DataID) {
 //      ShowPayload();
       addedLen = 3;      
       break;
-    case 0x03:  // RPM
+
+    // RPM. Works ok 24.07.13 jp. We are showing throttle value in RPM field from 1000 to 2000, same as pulse width
+    // Output is scaled to FrSky displayed output which is (x * 30)  Example: 34 = 30 = 1020
+    // Works as ARMED/DISARMED indicator as if DISARMED RPM value is 0
+    case 0x03:  
       outBuff[payloadLen + 0] = 0x03;
-      outBuff[payloadLen + 1] = 0x00;
-      outBuff[payloadLen + 2] = 0x00;
+      if(isArmed) {
+        outBuff[payloadLen + 1] = map(iob_throttle, 0, 100, 34, 66);
+        outBuff[payloadLen + 2] = 0x00;
+      } else {
+        outBuff[payloadLen + 1] = 0x00;
+        outBuff[payloadLen + 2] = 0x00;
+      }  
       addedLen = 3;      
       break;
+
     case 0x04:  // Fuel Level
       outBuff[payloadLen + 0] = 0x04;
-      outBuff[payloadLen + 1] = 0x00;
-      outBuff[payloadLen + 2] = 0x01;
+      outBuff[payloadLen + 1] = FixInt(iob_battery_remaining_A, 1);
+      outBuff[payloadLen + 2] = FixInt(iob_battery_remaining_A, 2);
       addedLen = 3;      
       break;
-    case 0x05:  // Temperature 2
+
+    // Temperature 2
+    // We are using Temperature 2 to show Visible GPS satellites and also FIX type
+    // Visible satellites is multiplied with 10 and fix type is added on final number
+    // For example if we have 7 satellites and we have solid 3D fix outcome will be
+    // (7 * 10) + 3 = 73   (7 satelliteds, 3 = 3D Fix)
+    case 0x05:  
       outBuff[payloadLen + 0] = 0x05;
-      outBuff[payloadLen + 1] = 0x02;
+      outBuff[payloadLen + 1] = 10 * iob_satellites_visible + iob_fix_type;
       outBuff[payloadLen + 2] = 0x00;
       addedLen = 3;      
       break;
-    case 0x06:  // Voltage, first 4 bits are cell number, rest 12 are voltage in 1/500v steps, scale 0-4.2v
+
+/*    case 0x06:  // Voltage, first 4 bits are cell number, rest 12 are voltage in 1/500v steps, scale 0-4.2v
       outBuff[payloadLen + 0] = 0x06;
       outBuff[payloadLen + 1] = 0x00;
       outBuff[payloadLen + 2] = 0xff;
@@ -153,12 +194,37 @@ byte addPayload(byte DataID) {
       outBuff[payloadLen + 11] = 0xff;
       addedLen = 12;      
       break;
-    case 0x10:
+*/
+    // Little Endian exception
+    case 0x06:  // Voltage, first 4 bits are cell number, rest 12 are voltage in 1/500v steps, scale 0-4.2v
+      if (cell_count < cell_numb) {
+        int tmp1 = FixInt(cellV[cell_count], 2);
+        int tmp2 = FixInt(cellV[cell_count], 1);
+
+        outBuff[payloadLen + 0] = 0x06;
+        outBuff[payloadLen + 1] = tmp1 + (cell_count * 16);
+        outBuff[payloadLen + 2] = tmp2;
+        addedLen = 3;
+        
+        cell_count++;
+      } else {
+        cell_count = 0; 
+      }
+      break;
+      
+    case 0x10:  // Altitude, before "." works on FLD-02, Taranis no
       outBuff[payloadLen + 0] = 0x10;
       outBuff[payloadLen + 1] = FixInt(iob_alt, 1);
       outBuff[payloadLen + 2] = FixInt(iob_alt, 2);
       addedLen = 3;      
       break;
+    case 0x21:  // Altitude, after "."
+      outBuff[payloadLen + 0] = 0x21;
+      outBuff[payloadLen + 1] = 0x00;
+      outBuff[payloadLen + 2] = 0x00;
+      addedLen = 3;      
+      break;
+
       
     case 0x11:  // GPS Speed, before "."
       outBuff[payloadLen + 0] = 0x11;
@@ -173,33 +239,48 @@ byte addPayload(byte DataID) {
       addedLen = 3;      
       break;
 
+    //Little Endian exception
     case 0x12:  // Longitude, before "."
       outBuff[payloadLen + 0] = 0x12;
-      outBuff[payloadLen + 1] = int(iob_lat);
-      outBuff[payloadLen + 2] = 0x00;
+      outBuff[payloadLen + 1] = FixInt(long(iob_lon),1);
+      outBuff[payloadLen + 2] = FixInt(long(iob_lon),2);
       addedLen = 3;      
       break;
     case 0x12+8:  // Longitude, after "."
       outBuff[payloadLen + 0] = 0x12+8;
-      outBuff[payloadLen + 1] = FixInt(long((iob_lat - int(iob_lat)) * 10000), 1);  // Only allow .0000 4 digits
-      outBuff[payloadLen + 2] = FixInt(long((iob_lat - int(iob_lat)) * 10000), 2);  // Only allow .0000 4 digits after .
+      outBuff[payloadLen + 1] = FixInt(long((iob_lon - long(iob_lon)) * 10000.0), 1);  // Only allow .0000 4 digits
+      outBuff[payloadLen + 2] = FixInt(long((iob_lon - long(iob_lon)) * 10000.0), 2);  // Only allow .0000 4 digits after .
       addedLen = 3;      
       break;
+    case 0x1A+8:  // E/W
+      outBuff[payloadLen + 0] = 0x1A+8;
+      outBuff[payloadLen + 1] = iob_lon_dir;
+      outBuff[payloadLen + 2] = 0;
+      addedLen = 3;      
+      break;
+
+      
+    //Little Endian exception
     case 0x13:  // Latitude, before "."
       outBuff[payloadLen + 0] = 0x13;
-      outBuff[payloadLen + 1] = int(iob_lon);
-      outBuff[payloadLen + 2] = 0x00;
+      outBuff[payloadLen + 1] = FixInt(long(iob_lat),1);
+      outBuff[payloadLen + 2] = FixInt(long(iob_lat),2);
       addedLen = 3;      
       break;
     case 0x13+8:  // Latitude, after "."
       outBuff[payloadLen + 0] = 0x13+8;
-      outBuff[payloadLen + 1] = FixInt(long((iob_lon - int(iob_lon)) * 10000), 1);
-      outBuff[payloadLen + 2] = FixInt(long((iob_lon - int(iob_lon)) * 10000), 2);      
+      outBuff[payloadLen + 1] = FixInt(long((iob_lat - long(iob_lat)) * 10000.0), 1);
+      outBuff[payloadLen + 2] = FixInt(long((iob_lat - long(iob_lat)) * 10000.0), 2);      
+      addedLen = 3;      
+      break;  
+    case 0x1B+8:  // N/S
+      outBuff[payloadLen + 0] = 0x1B+8;
+      outBuff[payloadLen + 1] = iob_lat_dir;
+      outBuff[payloadLen + 2] = 0;      
       addedLen = 3;      
       break;
-
    
-    case 0x14:  // course, before "."
+    case 0x14:  // course, before ".". OK
       outBuff[payloadLen + 0] = 0x14;
       outBuff[payloadLen + 1] = FixInt(iob_heading, 1);
       outBuff[payloadLen + 2] = FixInt(iob_heading, 2);
@@ -211,7 +292,6 @@ byte addPayload(byte DataID) {
       outBuff[payloadLen + 2] = 0x00;
       addedLen = 3;      
       break;
-
       
     case 0x15: // date/month
       outBuff[payloadLen + 0] = 0x15;
@@ -228,7 +308,7 @@ byte addPayload(byte DataID) {
     case 0x17: // hour/minute
       outBuff[payloadLen + 0] = 0x17;
       outBuff[payloadLen + 1] = hour, DEC;
-      outBuff[payloadLen + 2] = minute, DEC;
+      outBuff[payloadLen + 2] = minutes, DEC;
       addedLen = 3;      
       break;
     case 0x18: // second
@@ -239,10 +319,6 @@ byte addPayload(byte DataID) {
       break;
 
     case 0x24:
-//      outBuff[payloadLen + 0] = 0x24;
-//      outBuff[payloadLen + 1] = 0x00;
-//      outBuff[payloadLen + 2] = 0x01;
-
       outBuff[payloadLen + 0] = 0x24;      
       outBuff[payloadLen + 1] = FixInt(iob_roll * 100, 1);
       outBuff[payloadLen + 2] = FixInt(iob_roll * 100, 2);
@@ -261,6 +337,28 @@ byte addPayload(byte DataID) {
       addedLen = 3;      
       break;
 
+    case 0x3A:  // Volt 
+      //iob_vbat_A o boardVoltage
+      outBuff[payloadLen + 0] = 0x3A;
+      outBuff[payloadLen + 1] = FixInt(int(iob_vbat_A), 1);
+      outBuff[payloadLen + 2] = FixInt(int(iob_vbat_A), 2);
+      addedLen = 3;      
+      break;
+    case 0x3B:
+      //iob_vbat_A o boardVoltage
+      outBuff[payloadLen + 0] = 0x3B;
+      outBuff[payloadLen + 1] = FixInt(int((iob_vbat_A - int(iob_vbat_A)) * 1000.0), 1);
+      outBuff[payloadLen + 2] = FixInt(int((iob_vbat_A - int(iob_vbat_A)) * 1000.0), 2);
+      addedLen = 3;      
+      break;
+
+    case 0x28:
+      outBuff[payloadLen + 0] = 0x28;
+      outBuff[payloadLen + 1] = FixInt(int(iob_ampbatt_A), 1);
+      outBuff[payloadLen + 2] = FixInt(int(iob_ampbatt_A), 2);
+      addedLen = 3;      
+      break;
+      
     default:
       addedLen = 0;
   }
@@ -272,52 +370,62 @@ byte addEnd() {
  return 1; 
 }
 
+// Sending packets. Create frame with correct data
+// Frame format:
+//
 byte sendPayload(byte len) {
   
-  byte pos2;
-  // First fix outBuff and look if there are any 0x5E, if have 
-
-/*
-  for(byte pos = 0; pos <= len; pos++) { 
-    if(outBuff[pos] != 0x5E || outBuff[pos] != 0x5D) {
-      outBuffFixed[pos2] = outBuff[pos];      
-    } else {
-      if(outBuff[pos] == 0x5E) {
-        outBuffFixed[pos2] = 0x5D;
-        outBuffFixed[pos2 + 1] = 0x3E;
-        pos2 ++;
-      }
-      if(outBuff[pos] == 0x5D) {
-        outBuffFixed[pos2] = 0x5D;
-        outBuffFixed[pos2 + 1] = 0x3D;
-        pos2 ++;
-      }
-    }    
-   pos2++;    
-   }
-*/
-//   len = pos2;
-
   frSerial.write(0x5E);
-//  if(deb2)  Serial.print(0x5E, HEX);
+  if(QLog(LB4)) pp(0x5E);
+  
   for(byte pos = 0; pos <= len - 1; pos = pos + 3) {
     frSerial.write(byte(outBuff[pos + 0]));
-    frSerial.write(byte(outBuff[pos + 1]));
-    frSerial.write(byte(outBuff[pos + 2]));
+    if(QLog(LB4)) pp(outBuff[pos + 0]);
+ 
+    switch  (outBuff[pos + 1]) {
+      case 0x5E:
+        frSerial.write(byte(0x5D));
+        if(QLog(LB4)) pp(0x5D);
+        frSerial.write(byte(0x3E));
+        if(QLog(LB4)) pp(0x3E);
+        break;
+      case 0x5D:
+        frSerial.write(byte(0x5D));
+        if(QLog(LB4)) pp(0x5D);
+        frSerial.write(byte(0x3D));
+        if(QLog(LB4)) pp(0x3D);
+        break;
+        
+      default:
+        frSerial.write(byte(outBuff[pos + 1]));
+        if(QLog(LB4)) pp(outBuff[pos + 1]);
+    }
+
+    switch  (outBuff[pos + 2]) {
+      case 0x5E:
+        frSerial.write(byte(0x5D));
+        if(QLog(LB4)) pp(0x5D);
+        frSerial.write(byte(0x3E));
+        if(QLog(LB4)) pp(0x3E);
+        break;
+      case 0x5D:
+        frSerial.write(byte(0x5D));
+        if(QLog(LB4)) pp(0x5D);
+        frSerial.write(byte(0x3D));
+        if(QLog(LB4)) pp(0x3D);
+        break;        
+      default:
+        frSerial.write(byte(outBuff[pos + 2]));
+        if(QLog(LB4)) pp(outBuff[pos + 2]);
+    }
     frSerial.write(0x5E);
-   
-//    if(deb2) Serial.print(byte(outBuff[pos + 0]), HEX); 
-//    if(deb2) Serial.print(byte(outBuff[pos + 1]), HEX); 
-//    if(deb2) Serial.print(byte(outBuff[pos + 2]), HEX); 
-   
-//    if(deb2) Serial.print(" "); 
+    if(QLog(LB4)) pp(0x5E);
   }
-  //  frSerial.write(0x5E);
-//  if(deb2)  Serial.println(); 
+  if(QLog(LB4)) pl(0xFF);
   return 0;
 }
 
-// FrSky int handling
+// FrSky int handling Little Endian, Big Endian
 long FixInt(long val, byte mp) {  
  if(mp == 2) return long(val / 256);
  if (val >= 256 && mp == 1) 
@@ -325,28 +433,44 @@ long FixInt(long val, byte mp) {
 }
 
 void ShowPayload() {
-      Serial.print("PL: ");
-      Serial.print(outBuff[payloadLen + 1], DEC);
-      Serial.print(", ");
-      Serial.print(outBuff[payloadLen + 2], DEC);
-      Serial.println(); 
+#ifdef SERDB  
+   DPN("PL: ");
+   DPN(outBuff[payloadLen + 1], DEC);
+   DPN(", ");
+   DPN(outBuff[payloadLen + 2], DEC);
+   DPL(" "); 
+#endif
 }
 
 
 void updateTime() {
   if(second >= 60) {
     second = 0;
-    minute++;
+    minutes++;
    }
-   if(minute >= 60) {
+   if(minutes >= 60) {
     second = 0;
-    minute = 0;
+    minutes = 0;
     hour++;
    } 
    if(hour >= 24) {
      second = 0;
-     minute = 0;
+     minutes = 0;
      hour = 0;
    }
+}
+
+// Temporary debug funcs
+void pp (byte frameByte) {
+#ifdef SERDB
+  if(frameByte <= 9) DPN("0");
+  DPN(frameByte, HEX);
+#endif  
+}
+void pl (byte frameByte) {
+#ifdef SERDB
+  if(frameByte <= 9) DPN("0");
+  DPL(frameByte, HEX);
+#endif  
 }
 
