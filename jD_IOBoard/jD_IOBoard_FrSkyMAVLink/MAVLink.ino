@@ -67,7 +67,7 @@ void read_mavlink(){
     
     // trying to grab msg  
     if(mavlink_parse_char(MAVLINK_COMM_0, c, &msg, &status)) {
-       messageCounter = 0; 
+//       messageCounter = 0; 
        mavlink_active = 1;
        if(mavlink_active && LeRiPatt == 6) LeRiPatt = 0;
       // handle msg
@@ -101,28 +101,27 @@ void read_mavlink(){
             }
  
             lastMAVBeat = millis();
-            if(waitingMAVBeats == 1){
-              enable_mav_request = 1;
-            }
+//            if(waitingMAVBeats == 1){
+//              enable_mav_request = 1;
+//            }
 
 #ifdef SERDB            
-            if(debug) {
-              dbSerial.print("MAV: ");
-              dbSerial.print((mavlink_msg_heartbeat_get_base_mode(&msg),DEC));
-              dbSerial.print("  Modes: ");
-              dbSerial.print(iob_mode);
-              dbSerial.print("  Armed: ");
-              dbSerial.print(isArmed);
-              dbSerial.print("  FIX: ");
-              dbSerial.print(iob_fix_type);
-              dbSerial.print("  Sats: ");
-              dbSerial.print(iob_satellites_visible);
-              dbSerial.print("  CPUVolt: ");
-              dbSerial.print(boardVoltage);
-              dbSerial.print("  BatVolt: ");
-              dbSerial.print(iob_vbat_A);
-
-              dbSerial.println();
+            if(QLog(LB0)) {
+              DPN("MAV: ");
+              DPN((mavlink_msg_heartbeat_get_base_mode(&msg),DEC));
+              DPN("  Modes: ");
+              DPN(iob_mode);
+              DPN("  Armed: ");
+              DPN(isArmed);
+              DPN("  FIX: ");
+              DPN(iob_fix_type);
+              DPN("  Sats: ");
+              DPN(iob_satellites_visible);
+              DPN("  CPUVolt: ");
+              DPN(boardVoltage);
+              DPN("  BatVolt: ");
+              DPN(iob_vbat_A);
+              DPL(" ");
             } 
 #endif           
           }
@@ -130,12 +129,31 @@ void read_mavlink(){
           
         case MAVLINK_MSG_ID_SYS_STATUS:
           { 
+            
   //          dbPRNL("MAV SYS_STATUS");
             iob_vbat_A = (mavlink_msg_sys_status_get_voltage_battery(&msg) / 1000.0f);
             iob_battery_remaining_A = mavlink_msg_sys_status_get_battery_remaining(&msg);
+            uint16_t tmp = mavlink_msg_sys_status_get_battery_remaining(&msg);
 
-            //iob_mode = apm_mav_component;//Debug
-            //iob_nav_mode = apm_mav_system;//Debug
+            cellVvalue();
+
+//            if (tmp < 13) {
+//              iob_battery_remaining_A = 0;
+//            } else if (tmp < 37 ) {
+//              iob_battery_remaining_A = 25;
+//            } else if (tmp < 63 ) {
+//              iob_battery_remaining_A = 50;
+//            } else if (tmp < 88 ) {
+//              iob_battery_remaining_A = 75;
+//            } else {
+//              iob_battery_remaining_A = 100;
+//            }
+
+            if (tmp > 0) {
+              iob_battery_remaining_A = tmp;
+            } else {
+              iob_battery_remaining_A = tmp;
+            }            
           }
           break;
           
@@ -158,13 +176,45 @@ void read_mavlink(){
         case MAVLINK_MSG_ID_GPS_RAW_INT:
           { 
             iob_lat = mavlink_msg_gps_raw_int_get_lat(&msg) / 10000000.0f;
+// Patch from Simon / DIYD. Converting GPS locations to correct format            
+            if (iob_lat < 0) {
+              iob_lat_dir = 'S';
+              iob_lat = fabs(iob_lat);
+            } else {
+              iob_lat_dir = 'N';
+            }
+// start of new lat code
+            deg_dat = int(iob_lat);
+            dec_deg = iob_lat - deg_dat;
+            min_dat = int(dec_deg * 60);
+            dec_min = dec_deg * 60 - min_dat;
+            sec_dat = dec_min * 60;
+            iob_lat = (deg_dat * 100) + min_dat + (sec_dat/100);
+ // end of new lat code
+ 
             iob_lon = mavlink_msg_gps_raw_int_get_lon(&msg) / 10000000.0f;
-//            iob_lat = 13.123456;
-//            iob_lon = 100.987654;
+            if (iob_lon < 0) {
+              iob_lon_dir = 'W';
+              iob_lon = fabs(iob_lon);
+            } else {
+              iob_lon_dir = 'E';
+            }
+            
+// start of new lon code
+            deg_dat = int(iob_lon);
+            dec_deg = iob_lon - deg_dat;
+            min_dat = int(dec_deg * 60);
+            dec_min = dec_deg * 60 - min_dat;
+            sec_dat = dec_min * 60;
+            iob_lon = (deg_dat * 100) + min_dat + (sec_dat/100);
+ // end of new lon code
+ 
+            iob_gps_alt = mavlink_msg_gps_raw_int_get_alt(&msg) / 1000.0f;
             iob_fix_type = mavlink_msg_gps_raw_int_get_fix_type(&msg);
             iob_satellites_visible = mavlink_msg_gps_raw_int_get_satellites_visible(&msg);
           }
           break;
+
 #endif          
 
         case MAVLINK_MSG_ID_VFR_HUD:
@@ -205,9 +255,7 @@ void read_mavlink(){
           break;
         case MAVLINK_MSG_ID_STATUSTEXT:
           {   
-           DPL(mavlink_msg_statustext_get_severity(&msg));
-            
-            
+           DPL(mavlink_msg_statustext_get_severity(&msg));            
           }  
           break;
         default:
@@ -223,3 +271,20 @@ void read_mavlink(){
   parse_error += status.parse_error;
 
 }
+
+void cellVvalue() {
+  int i;
+  //no 3S temporary fix 
+  int val = (int)(2100.0*(iob_vbat_A/(float(cell_numb)))/4.2);
+
+  //no 3S temporary fix
+  if ((val > 2100) && (cell_numb < MAXCELL)) {
+    cell_numb++;
+    return;
+  }
+    
+  for (i=0;i<cell_numb;i++) {
+    cellV[i]=val;
+  }
+}
+

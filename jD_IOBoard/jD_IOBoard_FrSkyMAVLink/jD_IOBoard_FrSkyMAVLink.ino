@@ -4,13 +4,13 @@
  An Open Source Arduino based jD_IOBoard driver for MAVLink
  
  Program  : jD_IOBoard
- Version  : V1.0, June 06 2012
+ Version  : V0.3a-FrSky, July 26 2013
  Author(s): Jani Hirvinen
  Coauthor(s):
    Sandro Beningo  (MAVLink routines)
    Mike Smith      (BetterStream and Fast Serial libraries)
  
- This program is free software: you can redistribute it and/or modify
+ This program is free software: you can redistribute it and/or modify,
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -70,7 +70,7 @@
 
 #define MAVLINK10     // Are we listening MAVLink 1.0 or 0.9   (0.9 is obsolete now)
 #define HEARTBEAT     // HeartBeat signal
-//#define SERDB         // Output debug information to SoftwareSerial 
+#define SERDB         // Output debug information to SoftwareSerial 
 #define FRSER          // FrSky serial output, cannot be run same time with SERDB
 #define ONOFFSW       // Do we have OnOff switch connected in pins 
 #define membug
@@ -78,9 +78,11 @@
 /* **********************************************/
 /* ***************** INCLUDES *******************/
 
-//#define membug 
+#define membug   // undefine for real firmware
 //#define FORCEINIT  // You should never use this unless you know what you are doing 
 
+#define hiWord(w) ((w) >> 8)
+#define loWord(w) ((w) & 0xff)
 
 // AVR Includes
 #include <FastSerial.h>
@@ -119,7 +121,7 @@
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
-#define VER "v2.0"
+#define VER "v0.3"
 
 // These are not in real use, just for reference
 //#define O1 8      // High power Output 1
@@ -136,15 +138,6 @@
 //#define BAUD 57600    // Serial speed
 
 #define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
-
-#ifdef SERDB
-#define DPL if(debug) dbSerial.println 
-#define DPN if(debug) dbSerial.print
-#endif
-#ifdef FRSER
-#define DPL if(debug) frSerial.println
-#define DPN if(debug) frSerial.print
-#endif
 
 
 /* Patterns and other variables */
@@ -169,7 +162,7 @@ int i2cErrorCount;
 byte ledState;
 byte baseState;  // Bit mask for different basic output LEDs like so called Left/Right 
 
-byte debug = 0;  // Shoud not be activated on repository code, only for debug
+//byte debug = 1;  // Shoud not be activated on repository code, only for debug
 byte deb2 = 1;
 
 byte ANA;
@@ -184,38 +177,52 @@ SoftwareSerial frSerial(6,5,true);
 #endif
 
 #ifdef SERDB
-SoftwareSerial dbSerial(6,5);
+SoftwareSerial dbSerial(12,11);        // For debug porposes we are using pins 11, 12
+#define DPL if(debug) dbSerial.println
+#define DPN if(debug) dbSerial.print
+byte debug = 1;
+#else
+#define DPL if(debug) {}
+#define DPN if(debug) {}
+byte debug = 0;
 #endif
+
+
+
 
 /* **********************************************/
 /* ***************** SETUP() *******************/
 
 void setup() 
 {
-
+  
+  // Before all, set debug level if we have any. Comment out if not
+debug = 4;  
+  
+  
   // Initialize Serial port, speed
   Serial.begin(TELEMETRY_SPEED);
-  
+
 #ifdef SERDB
   // Our software serial is connected on pins D6 and D5
-  dbSerial.begin(57600);
-  DPL("Debug Serial ready... ");
+  dbSerial.begin(38400);                    // We don't want to too fast
+  DPL("Debug port Open");
   DPL("No input from this serialport.  ");
-#endif  
-
+  if(analogRead(A6) == 1023) DPL("Running IOBoard v1.1");
+#endif
+  
 #ifdef FRSER
   frSerial.begin(9600);
 #endif
 
-
-  if(digitalRead(11) == 0) {    
+  digitalWrite(13, HIGH);      // Let's put PULLUP high in pin 13 to avoid accidental erases
+  if(digitalRead(13) == 0) {    
     DPL("Force erase pin LOW, Eracing EEPROM");
     DPN("Writing EEPROM...");
     writeFactorySettings();
     DPL(" done.");
   }
   
-
   // Check that EEPROM has initial settings, if not write them
   if(readEEPROM(CHK1) + readEEPROM(CHK2) != CHKVER) {
 #ifdef DUMPEEPROMTELEMETRY
@@ -307,12 +314,10 @@ void setup()
   // if MAVLink flows correctly, this flag will be changed to DIS
   enable_mav_request = EN;  
   
-  
   // for now we are always active, maybe in future there will be some
   // additional features like light conditions that changes it.
   isActive = EN;  
-  
-  
+    
 } // END of setup();
 
 
@@ -337,14 +342,22 @@ void loop()
 
       // First we update pattern positions 
       patt_pos++;
-      if(patt_pos == 16) patt_pos = 0;
+      if(patt_pos == 16) {
+        patt_pos = 0;
+        if(debug == 4) dumpVars(); 
+      }
     }
 
     // Update base lights if any
     updateBase();
   
-    if(enable_mav_request == 1) { //Request rate control
-      //DPL("IN ENA REQ");
+#ifdef SERDB
+    Check_dbSerial();
+#endif    
+  
+  
+    if(enable_mav_request == 1) { //Request rate control. 
+      DPL("IN ENA REQ");
       // During rate requsst, LEFT/RIGHT outputs are HIGH
       digitalWrite(LEFT, EN);
       digitalWrite(RIGHT, EN);
@@ -364,12 +377,12 @@ void loop()
       lastMAVBeat = millis();    // Preventing error from delay sensing
       //DPL("OUT ENA REQ");
     }  
-  
+    
     // Request rates again on every 10th check if mavlink is still dead.
-    if(!mavlink_active && messageCounter == 10) {
+//    if(!mavlink_active && messageCounter == 10) {
+    if(!mavlink_active) {
       DPL("Enabling requests again");
       enable_mav_request = 1;
-      messageCounter = 0;
       LeRiPatt = 6;
     } 
     
@@ -378,6 +391,7 @@ void loop()
 
     updatePWM(); 
     update_FrSky();
+    
 
   } else AllOff();
 
@@ -390,7 +404,6 @@ void loop()
 void OnMavlinkTimer()
 {
   if(millis() < (lastMAVBeat + 3000)) {
-           
     // General condition checks starts from here
     //
       
@@ -399,8 +412,6 @@ void OnMavlinkTimer()
       if(iob_fix_type <= 2) LeRiPatt = ALLOK;
 //      if(iob_fix_type <= 2) LeRiPatt = NOLOCK;
       if(iob_fix_type >= 3) LeRiPatt = ALLOK;
-  //   DPL(iob_fix_type, DEC); 
-  //   DPL(iob_satellites_visible, DEC); 
   
       // CPU board voltage alarm  
       if(voltAlarm) {
@@ -415,21 +426,94 @@ void OnMavlinkTimer()
     
     // Update base LEDs  
     updateBase();
-  
-    if(messageCounter >= 3 && mavlink_active) {
+
+/*    DPN("MC:"); 
+    DPL(messageCounter);
+    if(messageCounter >= 20 && mavlink_active) {
       DPL("We lost MAVLink");
       mavlink_active = 0;
       messageCounter = 0;
       LeRiPatt = NOMAVLINK;
     }
   //  DPL(messageCounter);
-  
+*/ 
   // End of OnMavlinkTimer
   } else {
+//    DPN("Beats:");
+//   DPL(lastMAVBeat);
     waitingMAVBeats = 1;
     LeRiPatt = NOMAVLINK;
   }
 }
 
 
+void dumpVars() {
+#ifdef SERDB  
+ DPN("Sats:");
+ DPN(iob_satellites_visible);
+ DPN(" Fix:");
+ DPN(iob_fix_type);
+ DPN(" Modes:");
+ DPN(iob_mode);
+ DPN(" Armed:");
+ DPN(isArmed);
+ DPN(" Thr:");
+ DPN(iob_throttle);
+ DPN(" CPUVolt:");
+ DPN(boardVoltage);
+ DPN(" BatVolt:");
+ DPN(iob_vbat_A);
+ DPN(" Alt:");
+ DPN(iob_alt);
+ DPN(" Hdg:");
+ DPN(iob_heading);
+ DPN(" Spd:");
+ DPN(iob_groundspeed);
+ DPN(" Lat:");
+ DPN(iob_lat);
+ DPN(" Lon");
+ DPN(iob_lon);
+ DPL(" "); 
+#endif
+}
+
+// If we have Debug serial runnings, let's check if there is any incoming commands...
+void Check_dbSerial() {
+  
+#ifdef SERDB
+ if(dbSerial.available() > 0) {
+ byte inByte = dbSerial.read(); 
+     DPN("Got Serial:");
+     DPL(inByte);
+     
+     switch(inByte) {
+      case '0':
+       FLog(LB0);
+       break;     
+      case '1':
+       FLog(LB1);
+       break;     
+      case '2':
+       FLog(LB2);
+       break;     
+      case '3':
+       FLog(LB3);
+       break;     
+      case '4':
+       FLog(LB4);
+       break;     
+      case '5':
+       FLog(LB5);
+       break;     
+      case '6':
+       FLog(LB6);
+       break;     
+      case '7':
+       FLog(LB7);
+       break;     
+     }  
+ }
+// dbSerial.flush();
+#endif 
+} 
 
